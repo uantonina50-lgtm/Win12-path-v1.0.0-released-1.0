@@ -1,0 +1,162 @@
+Windows12_path-v2-alpha1 CODE
+
+CODE HERE:
+
+from pathlib import Path
+
+src = Path("/mnt/data/Windows_12_Web_Enhanced.html")
+html = src.read_text(encoding="utf-8")
+
+css = r'''
+/* Windows 12 visual refresh */
+.brandmark{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:5;
+  padding:7px 16px;border:1px solid #ffffff2a;border-radius:999px;background:#101b31a8;
+  backdrop-filter:blur(18px);font-size:13px;letter-spacing:2.8px;font-weight:700;color:#e8f4ff;
+  box-shadow:0 8px 30px #0003;pointer-events:none}
+.brandmark em{font-style:normal;color:#9bd4ff}
+.icon{border:1px solid transparent;transition:background .15s,border-color .15s,transform .15s}
+.icon:hover{border-color:#ffffff22;transform:translateY(-1px)}
+.icon .glyph{width:48px;height:48px;margin:0 auto 5px;display:grid;place-items:center;
+  border-radius:15px;background:linear-gradient(145deg,#ffffff2b,#ffffff09);
+  border:1px solid #ffffff24;box-shadow:0 5px 15px #0002;font-size:26px;text-shadow:none}
+.taskbar{box-shadow:0 -8px 35px #0002}
+.taskbtn{border:1px solid transparent;transition:.15s}
+.taskbtn:hover{border-color:#ffffff20;transform:translateY(-2px)}
+#quickPanel{display:none;position:fixed;right:16px;bottom:76px;width:min(330px,calc(100vw - 32px));padding:16px;z-index:1200}
+#quickPanel.show{display:block}
+.quicktiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.quicktiles button{padding:13px 8px;border-radius:12px;background:#ffffff14;text-align:left}
+.quicktiles button:hover{background:#ffffff28}
+.widget{position:fixed;right:22px;top:24px;width:190px;padding:14px;z-index:2;background:#13244065;
+ border:1px solid #ffffff24;border-radius:16px;backdrop-filter:blur(20px);box-shadow:0 10px 30px #0002}
+.widget .bigtime{font-size:27px;font-weight:600;letter-spacing:1px}
+.widget small{color:#d3e1f5}
+.gamegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:340px;margin:14px auto}
+.gamegrid button{aspect-ratio:1;border-radius:12px;background:#ffffff17;font-size:32px}
+.gamegrid button:hover{background:#ffffff2b}
+.memorygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:14px auto}
+.memorygrid button{height:66px;border-radius:11px;background:#ffffff17;font-size:25px}
+.memorygrid button.revealed{background:#3478dc99}
+.painttools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#paintCanvas{width:100%;height:300px;background:#fff;border-radius:12px;touch-action:none;cursor:crosshair}
+.timerface{text-align:center;font-size:54px;font-weight:650;padding:25px}
+.storeitem .appico{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;
+ background:linear-gradient(135deg,#ffffff2c,#ffffff0a);border:1px solid #ffffff20}
+.badge{font-size:10px;padding:3px 7px;border-radius:99px;background:#8ab4ff30;color:#d7eaff}
+@media(max-width:650px){.widget{display:none}.brandmark{top:9px}.desktop{padding-top:56px}}
+'''
+html = html.replace('</style>', css + '\n</style>', 1)
+
+# Brand and small desktop widget
+html = html.replace('<div id="wallpaper"></div>', '''<div id="wallpaper"></div>
+<div class="brandmark">✦ <em>WINDOWS</em> 12</div>
+<div class="widget"><div class="bigtime" id="widgetClock">--:--</div><small id="widgetDate">Добро пожаловать</small><div style="margin-top:10px;font-size:12px;color:#e5efff">✨ Хорошего дня!</div></div>''', 1)
+
+# Add more desktop shortcuts after task manager shortcut
+desktop_marker = ' <button class="icon" data-app="taskmgr"><span class="glyph">📊</span><span>Диспетчер задач</span></button>'
+desktop_more = desktop_marker + '''
+ <button class="icon" data-app="paint"><span class="glyph">🎨</span><span>Рисование</span></button>
+ <button class="icon" data-app="timer"><span class="glyph">⏱️</span><span>Таймер</span></button>
+ <button class="icon" data-app="games"><span class="glyph">🎮</span><span>Игры</span></button>
+ <button class="icon" data-app="recycle"><span class="glyph">🗑️</span><span>Корзина</span></button>'''
+html = html.replace(desktop_marker, desktop_more, 1)
+
+# Quick settings trigger
+html = html.replace('<span class="status">⌃　◉　🔊　🔋</span>', '<button class="taskbtn" id="quickBtn" title="Быстрые настройки" style="width:34px;height:34px;font-size:16px">⌃</button><span class="status">◉　🔊　🔋</span>', 1)
+
+# Add quick panel before toast
+html = html.replace('<div class="toast panel" id="toast"></div>', '''<div class="panel" id="quickPanel"><b>Быстрые настройки</b><div class="quicktiles">
+<button onclick="cycleWallpaper()">🎨　Обои</button><button onclick="document.body.classList.toggle('light');notify('Тема переключена')">🌙　Тема</button>
+<button onclick="notify('Режим не беспокоить включён')">🔕　Не беспокоить</button><button onclick="notify('Подключение: локальный режим')">📶　Сеть</button>
+</div><p class="muted" style="font-size:11px;margin:12px 2px 0">Windows 12 Web · Быстрые действия</p></div>
+<div class="toast panel" id="toast"></div>''', 1)
+
+# Add menu app shortcuts in grid
+needle = '<button class="app" data-app="taskmgr"><b>📊</b><small>Диспетчер задач</small></button>'
+more_menu = needle + '''<button class="app" data-app="paint"><b>🎨</b><small>Рисование</small></button><button class="app" data-app="timer"><b>⏱️</b><small>Таймер</small></button><button class="app" data-app="games"><b>🎮</b><small>Игры</small></button><button class="app" data-app="recycle"><b>🗑️</b><small>Корзина</small></button>'''
+html = html.replace(needle, more_menu, 1)
+
+# Add windows before login screen
+new_windows = r'''
+<div class="window panel" id="games" style="left:17%;top:10%;width:720px;height:520px">
+ <div class="titlebar"><strong>🎮　Игровой центр</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Мини-игры</h2><p class="muted">Небольшая коллекция игр, которые работают прямо в этом окне.</p>
+ <div class="storegrid">
+ <div class="storeitem"><div class="appico">⭕</div><b>Крестики-нолики</b><p>Сыграйте партию против друга на одном компьютере.</p><button class="primary" onclick="showGame('tic')">Играть</button></div>
+ <div class="storeitem"><div class="appico">🧠</div><b>Найди пару</b><p>Откройте одинаковые карточки и проверьте память.</p><button class="primary" onclick="showGame('memory')">Играть</button></div>
+ <div class="storeitem"><div class="appico">🐍</div><b>Змейка</b><p>Собирайте яблоки, не врезаясь в себя.</p><button class="primary" onclick="showGame('snake')">Играть</button></div>
+ </div><div id="gameArea" class="card" style="margin-top:14px;min-height:190px"><p class="muted">Выберите игру выше.</p></div></div>
+</div>
+<div class="window panel" id="paint" style="left:18%;top:12%;width:690px;height:500px">
+ <div class="titlebar"><strong>🎨　Рисование</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Свободное рисование</h2><div class="painttools"><label>Цвет <input type="color" id="paintColor" value="#245bd6"></label><label>Размер <input type="range" id="paintSize" min="1" max="30" value="5"></label><button class="primary" onclick="clearPaint()">Очистить</button><button class="primary" onclick="downloadPaint()">Скачать рисунок</button></div><canvas id="paintCanvas" width="900" height="420"></canvas></div>
+</div>
+<div class="window panel" id="timer" style="left:34%;top:16%;width:390px;height:390px">
+ <div class="titlebar"><strong>⏱️　Таймер и секундомер</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="timerface" id="timerFace">05:00</div><div style="display:flex;gap:8px;justify-content:center"><input id="timerMinutes" type="number" min="1" max="180" value="5" style="width:90px;padding:9px;border-radius:9px;border:0"><button class="primary" onclick="startTimer()">Старт</button><button class="primary" onclick="pauseTimer()">Пауза</button><button class="primary" onclick="resetTimer()">Сброс</button></div><p class="muted" style="text-align:center">Простой таймер для работы и отдыха.</p></div>
+</div>
+<div class="window panel" id="recycle" style="left:26%;top:17%;width:480px;height:360px">
+ <div class="titlebar"><strong>🗑️　Корзина</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div style="font-size:45px;text-align:center;margin:20px">🗑️</div><h3 style="text-align:center">Корзина пуста</h3><p class="muted" style="text-align:center">В этой демонстрационной версии удалённые файлы не перемещаются в корзину.</p></div>
+</div>
+'''
+html = html.replace('<div id="loginScreen" class="show">', new_windows + '\n<div id="loginScreen" class="show">', 1)
+
+# Add games to store array
+html = html.replace("{id:'calculator',icon:'🧮',name:'Калькулятор',desc:'Выполняйте повседневные вычисления.'}", """{id:'calculator',icon:'🧮',name:'Калькулятор',desc:'Выполняйте повседневные вычисления.'},
+ {id:'games',icon:'🎮',name:'Игровой центр',desc:'Три мини-игры для короткого отдыха.'},
+ {id:'paint',icon:'🎨',name:'Рисование',desc:'Создавайте рисунки и скачивайте их.'},
+ {id:'timer',icon:'⏱️',name:'Таймер',desc:'Удобный таймер для фокусировки.'},
+ {id:'recycle',icon:'🗑️',name:'Корзина',desc:'Раздел для удалённых файлов.'}""", 1)
+
+# Add JS before last closing script
+js = r'''
+// Quick settings panel
+document.getElementById('quickBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('quickPanel').classList.toggle('show')});
+document.addEventListener('click',e=>{if(!e.target.closest('#quickPanel')&&!e.target.closest('#quickBtn'))document.getElementById('quickPanel').classList.remove('show')});
+function updateWidgetClock(){const d=new Date();document.getElementById('widgetClock').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('widgetDate').textContent=d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
+updateWidgetClock();setInterval(updateWidgetClock,1000);
+
+// Paint app
+const paintCanvas=document.getElementById('paintCanvas'),paintCtx=paintCanvas.getContext('2d');
+paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height);
+let painting=false;
+function paintPoint(e){const r=paintCanvas.getBoundingClientRect();return {x:(e.clientX-r.left)*paintCanvas.width/r.width,y:(e.clientY-r.top)*paintCanvas.height/r.height}}
+paintCanvas.addEventListener('pointerdown',e=>{painting=true;paintCanvas.setPointerCapture(e.pointerId);const p=paintPoint(e);paintCtx.beginPath();paintCtx.moveTo(p.x,p.y)});
+paintCanvas.addEventListener('pointermove',e=>{if(!painting)return;const p=paintPoint(e);paintCtx.lineWidth=Number(document.getElementById('paintSize').value);paintCtx.lineCap='round';paintCtx.strokeStyle=document.getElementById('paintColor').value;paintCtx.lineTo(p.x,p.y);paintCtx.stroke()});
+paintCanvas.addEventListener('pointerup',()=>painting=false);paintCanvas.addEventListener('pointercancel',()=>painting=false);
+function clearPaint(){paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height)}
+function downloadPaint(){const a=document.createElement('a');a.download='my-drawing.png';a.href=paintCanvas.toDataURL('image/png');a.click()}
+
+// Timer
+let timerSeconds=300,timerInterval=null;
+function paintTimer(){document.getElementById('timerFace').textContent=String(Math.floor(timerSeconds/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0')}
+function startTimer(){if(timerInterval)return;if(timerSeconds<=0)timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;timerInterval=setInterval(()=>{timerSeconds--;paintTimer();if(timerSeconds<=0){pauseTimer();notify('⏰ Время вышло!')}},1000)}
+function pauseTimer(){clearInterval(timerInterval);timerInterval=null}
+function resetTimer(){pauseTimer();timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;paintTimer()}
+paintTimer();
+
+// Games
+let ticTurn='❌',ticCells=Array(9).fill(''),memoryDeck=[],memoryOpen=[],memoryLock=false,snakeTimer=null,snakeState=null;
+function showGame(which){const area=document.getElementById('gameArea');
+ if(which==='tic'){ticCells=Array(9).fill('');ticTurn='❌';renderTic();return}
+ if(which==='memory'){memoryDeck=['🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐', '🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐'].sort(()=>Math.random()-.5);memoryOpen=[];memoryLock=false;renderMemory();return}
+ if(which==='snake'){startSnake();return}
+}
+function renderTic(){const a=document.getElementById('gameArea');a.innerHTML='<b>Крестики-нолики</b><p class="muted">Ход: '+ticTurn+'</p><div class="gamegrid">'+ticCells.map((v,i)=>`<button onclick="ticMove(${i})">${v}</button>`).join('')+'</div><button class="primary" onclick="showGame(\\'tic\\')">Новая игра</button>'}
+function ticMove(i){if(ticCells[i])return;ticCells[i]=ticTurn;const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const win=lines.some(l=>l.every(n=>ticCells[n]===ticTurn));if(win){renderTic();document.querySelector('#gameArea p').textContent='Победили '+ticTurn+'!';return}if(ticCells.every(Boolean)){renderTic();document.querySelector('#gameArea p').textContent='Ничья!';return}ticTurn=ticTurn==='❌'?'⭕':'❌';renderTic()}
+function renderMemory(){document.getElementById('gameArea').innerHTML='<b>Найди пару</b><p class="muted">Совпадений: '+(memoryOpen.filter(i=>memoryDeck[i]==='').length/2)+'</p><div class="memorygrid">'+memoryDeck.map((v,i)=>`<button class="${v===''?'revealed':''}" onclick="flipMemory(${i})">${v===''?'✓':memoryOpen.includes(i)?v:'❔'}</button>`).join('')+'</div><button class="primary" onclick="showGame(\\'memory\\')">Перемешать</button>'}
+function flipMemory(i){if(memoryLock||memoryDeck[i]===''||memoryOpen.includes(i))return;memoryOpen.push(i);renderMemory();if(memoryOpen.length%2===0){const [a,b]=memoryOpen.slice(-2);if(memoryDeck[a]===memoryDeck[b]){memoryDeck[a]='';memoryDeck[b]='';memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);renderMemory();if(memoryDeck.every(v=>v===''))document.querySelector('#gameArea p').textContent='Победа! Все пары найдены.'}else{memoryLock=true;setTimeout(()=>{memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);memoryLock=false;renderMemory()},750)}}}
+function startSnake(){clearInterval(snakeTimer);snakeState={body:[{x:7,y:7},{x:6,y:7},{x:5,y:7}],dir:{x:1,y:0},food:{x:12,y:7},score:0,over:false};document.getElementById('gameArea').innerHTML='<b>Змейка</b> <span id="snakeScore">Очки: 0</span><p class="muted">Управление — стрелки на клавиатуре.</p><canvas id="snakeCanvas" width="360" height="260" style="display:block;max-width:100%;background:#0d1728;border-radius:12px;margin:10px auto"></canvas><button class="primary" onclick="startSnake()">Заново</button>';drawSnake();snakeTimer=setInterval(stepSnake,140)}
+function drawSnake(){const c=document.getElementById('snakeCanvas');if(!c||!snakeState)return;const x=c.getContext('2d'),s=20;x.clearRect(0,0,c.width,c.height);x.fillStyle='#15263c';x.fillRect(0,0,c.width,c.height);x.fillStyle='#fb7185';x.fillRect(snakeState.food.x*s,snakeState.food.y*s,s-2,s-2);snakeState.body.forEach((p,i)=>{x.fillStyle=i?'#60a5fa':'#a7f3d0';x.fillRect(p.x*s,p.y*s,s-2,s-2)});document.getElementById('snakeScore').textContent='Очки: '+snakeState.score}
+function stepSnake(){const st=snakeState;if(!st||st.over)return;const h={x:st.body[0].x+st.dir.x,y:st.body[0].y+st.dir.y};if(h.x<0||h.y<0||h.x>=18||h.y>=13||st.body.some(p=>p.x===h.x&&p.y===h.y)){st.over=true;clearInterval(snakeTimer);notify('Игра окончена! Очки: '+st.score);return}st.body.unshift(h);if(h.x===st.food.x&&h.y===st.food.y){st.score++;st.food={x:Math.floor(Math.random()*18),y:Math.floor(Math.random()*13)}}else st.body.pop();drawSnake()}
+document.addEventListener('keydown',e=>{if(!snakeState||snakeState.over||!document.getElementById('games').classList.contains('open'))return;const map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};const d=map[e.key];if(d&&!(d.x===-snakeState.dir.x&&d.y===-snakeState.dir.y)){snakeState.dir=d;e.preventDefault()}});
+'''
+html = html.replace('</script>', js + '\n</script>', 1)
+
+# Include extra apps in task manager display names
+html = html.replace("about:'О системе'}", "about:'О системе',paint:'Рисование',timer:'Таймер',games:'Игровой центр',recycle:'Корзина'}", 1)
+
+out = Path("/mnt/data/Windows_12_Web_Ultimate.html")
+out.write_text(html, encoding="utf-8")
+print(f"Создано обновление: {out.name} ({out.stat().st_size:,} байт)")
