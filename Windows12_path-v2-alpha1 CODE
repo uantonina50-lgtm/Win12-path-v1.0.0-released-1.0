@@ -157,6 +157,8 @@ html = html.replace('</script>', js + '\n</script>', 1)
 # Include extra apps in task manager display names
 html = html.replace("about:'О системе'}", "about:'О системе',paint:'Рисование',timer:'Таймер',games:'Игровой центр',recycle:'Корзина'}", 1)
 
-out = Path("/mnt/data/Windows_12_Web_Ultimate.html")
-out.write_text(html, encoding="utf-8")
-print(f"Создано обновление: {out.name} ({out.stat().st_size:,} байт)")
+
+
+
+
+Code Create @uantonina50-lgtm
