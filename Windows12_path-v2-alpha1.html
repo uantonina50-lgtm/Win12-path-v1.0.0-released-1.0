@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Windows 12 — Web Desktop</title>
+<style>
+:root{--glass:rgba(24,31,49,.72);--line:rgba(255,255,255,.16);--text:#f7f8ff;--muted:#b8c2d9;--accent:#8ab4ff;--shadow:0 22px 70px #0006}
+*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;color:var(--text);font:14px/1.45 "Segoe UI",Inter,Arial,sans-serif;background:#111827}
+button,input,textarea{font:inherit}button{color:inherit;cursor:pointer;border:0}
+#wallpaper{position:fixed;inset:0;background:radial-gradient(ellipse at 70% 43%,#5ca8e8 0,#23528b 23%,transparent 48%),radial-gradient(ellipse at 30% 80%,#8b61ba 0,transparent 38%),linear-gradient(135deg,#101c39,#142c52 48%,#071629);z-index:-2}
+#wallpaper:before,#wallpaper:after{content:"";position:absolute;border-radius:50%;filter:blur(2px);transform:rotate(-25deg)}
+#wallpaper:before{width:75vw;height:32vw;left:18vw;top:20vh;background:linear-gradient(130deg,#7dd3fc88,#3267c888 50%,#a78bfa66);box-shadow:0 0 100px #60a5fa66}
+#wallpaper:after{width:65vw;height:19vw;left:24vw;top:35vh;background:linear-gradient(90deg,#b9e7ff55,#2563eb77);filter:blur(24px)}
+.desktop{position:absolute;inset:0 0 64px;padding:24px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:14px}
+.icon{width:82px;min-height:82px;padding:8px 4px;border-radius:12px;text-align:center;background:transparent;color:white;text-shadow:0 2px 5px #0008}
+.icon:hover{background:#ffffff20}.icon .glyph{font-size:32px;display:block;margin-bottom:4px}.icon span:last-child{font-size:12px}
+.taskbar{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(12,20,37,.62);backdrop-filter:blur(28px);border-top:1px solid #ffffff24;display:flex;align-items:center;justify-content:center;z-index:1000}
+.task-center{display:flex;gap:7px;align-items:center}.taskbtn{width:44px;height:44px;border-radius:13px;background:transparent;font-size:21px}.taskbtn:hover,.taskbtn.active{background:#ffffff20}.taskbtn.start{font-size:24px;color:#a9d6ff}
+.tray{position:absolute;right:18px;display:flex;align-items:center;gap:14px;text-align:right;color:#eef4ff;font-size:12px}.tray .status{font-size:17px}
+.panel{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(34px) saturate(150%);box-shadow:var(--shadow);border-radius:18px}
+.startmenu{display:none;position:fixed;z-index:1100;bottom:76px;left:50%;transform:translateX(-50%);width:min(590px,94vw);padding:22px}
+.startmenu.show{display:block;animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.search{width:100%;border:1px solid #ffffff28;background:#ffffff13;color:white;border-radius:11px;padding:12px 15px;outline:none}.search::placeholder{color:#c6d2e6}
+.sectionhead{display:flex;justify-content:space-between;margin:20px 2px 12px;font-weight:600}.apps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.app{border-radius:12px;padding:12px 4px;text-align:center;background:transparent}.app:hover{background:#ffffff1c}.app b{display:block;font-size:27px;margin-bottom:5px;font-weight:400}.app small{font-size:11px}
+.recommended{display:flex;gap:12px;padding:10px;border-radius:10px;background:#ffffff0c;align-items:center}.userrow{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid #ffffff22}.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#8bd5ff,#8b5cf6);display:inline-grid;place-items:center;margin-right:8px}
+.window{position:absolute;z-index:20;min-width:300px;min-height:180px;width:620px;height:430px;max-width:calc(100vw - 24px);max-height:calc(100vh - 90px);display:none;overflow:hidden;resize:both}
+.window.open{display:flex;flex-direction:column;animation:win .16s ease-out}@keyframes win{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.titlebar{height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 16px;border-bottom:1px solid #ffffff1c;cursor:move;user-select:none}
+.titlebar strong{font-weight:600}.wincontrols{display:flex;gap:4px}.wincontrols button{width:34px;height:30px;background:transparent;border-radius:7px}.wincontrols button:hover{background:#ffffff20}.wincontrols .close:hover{background:#e5484d}
+.content{padding:18px;overflow:auto;flex:1;background:#111a2b45}
+.card{background:#ffffff0d;border:1px solid #ffffff18;border-radius:13px;padding:14px}.muted{color:var(--muted)}.row{display:flex;gap:12px}.col{flex:1;min-width:0}
+.browserbar{display:flex;gap:8px;margin-bottom:14px}.browserbar input{flex:1;min-width:0;background:#ffffff13;border:1px solid #ffffff25;color:white;border-radius:9px;padding:9px 12px}
+.primary{background:#3478dc;border-radius:9px;padding:9px 14px}.primary:hover{background:#4b8eea}
+.explorer{display:grid;grid-template-columns:145px 1fr;gap:15px;height:100%}.sidebar div{padding:8px;border-radius:8px}.sidebar div:hover{background:#ffffff17}.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;align-content:start}.file{padding:12px 5px;text-align:center;border-radius:10px}.file:hover{background:#ffffff16}.file span{font-size:30px;display:block}
+textarea.note{width:100%;height:100%;min-height:230px;background:#fff8cf;color:#333;border:0;border-radius:10px;padding:16px;resize:none;outline:none;font:15px/1.6 "Segoe UI",sans-serif}
+.calc{max-width:330px;margin:auto}.calcdisplay{width:100%;height:65px;background:#ffffff10;border:0;border-radius:12px;color:white;text-align:right;padding:12px;font-size:28px;margin-bottom:12px}.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.keys button{height:52px;border-radius:10px;background:#ffffff15;font-size:18px}.keys button:hover{background:#ffffff2a}.keys .op{background:#3478dc88}
+.settingsgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.setting{padding:15px;border-radius:12px;background:#ffffff10}
+.toast{position:fixed;right:18px;bottom:82px;padding:13px 18px;z-index:2000;display:none}
+@media(max-width:600px){.tray{right:8px}.tray .date{display:none}.task-center{transform:translateX(-30px)}.desktop{padding:10px;gap:5px}.icon{width:72px}.startmenu{bottom:70px}.apps{grid-template-columns:repeat(3,1fr)}.window{left:8px!important;top:8px!important;width:calc(100vw - 16px)!important;height:calc(100vh - 88px)!important}.explorer{grid-template-columns:95px 1fr}}
+
+#loginScreen{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 35%,#315b91 0,#172b4d 48%,#081323 100%);backdrop-filter:blur(20px)}
+#loginScreen.show{display:flex}
+.loginbox{width:min(390px,92vw);padding:32px;text-align:center}
+.loginbox .loginlogo{font-size:58px;color:#b9e0ff;margin-bottom:8px}
+.loginbox input{width:100%;margin:9px 0;padding:12px 14px;border-radius:10px;border:1px solid #ffffff30;background:#ffffff13;color:white;outline:none}
+.loginbox input::placeholder{color:#c5d1e4}
+.loginbox button{width:100%;margin-top:10px}
+.storegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.storeitem{padding:14px;border-radius:13px;background:#ffffff10;border:1px solid #ffffff18;display:flex;flex-direction:column;gap:8px;min-height:170px}
+.storeitem .appico{font-size:34px}.storeitem p{margin:0;color:var(--muted);font-size:12px;flex:1}
+.storeitem button{align-self:flex-start}
+.downloadzone{border:1px dashed #ffffff55;border-radius:14px;padding:25px;text-align:center;background:#ffffff08}
+.downloadlist{display:grid;gap:8px;margin-top:14px}
+.downloadrow{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#ffffff0d}
+.downloadrow .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profilebadge{display:flex;align-items:center;gap:8px}
+#loginError{color:#ffb4b4;min-height:20px;font-size:12px}
+
+
+/* Windows 12 visual refresh */
+.brandmark{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:5;
+  padding:7px 16px;border:1px solid #ffffff2a;border-radius:999px;background:#101b31a8;
+  backdrop-filter:blur(18px);font-size:13px;letter-spacing:2.8px;font-weight:700;color:#e8f4ff;
+  box-shadow:0 8px 30px #0003;pointer-events:none}
+.brandmark em{font-style:normal;color:#9bd4ff}
+.icon{border:1px solid transparent;transition:background .15s,border-color .15s,transform .15s}
+.icon:hover{border-color:#ffffff22;transform:translateY(-1px)}
+.icon .glyph{width:48px;height:48px;margin:0 auto 5px;display:grid;place-items:center;
+  border-radius:15px;background:linear-gradient(145deg,#ffffff2b,#ffffff09);
+  border:1px solid #ffffff24;box-shadow:0 5px 15px #0002;font-size:26px;text-shadow:none}
+.taskbar{box-shadow:0 -8px 35px #0002}
+.taskbtn{border:1px solid transparent;transition:.15s}
+.taskbtn:hover{border-color:#ffffff20;transform:translateY(-2px)}
+#quickPanel{display:none;position:fixed;right:16px;bottom:76px;width:min(330px,calc(100vw - 32px));padding:16px;z-index:1200}
+#quickPanel.show{display:block}
+.quicktiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.quicktiles button{padding:13px 8px;border-radius:12px;background:#ffffff14;text-align:left}
+.quicktiles button:hover{background:#ffffff28}
+.widget{position:fixed;right:22px;top:24px;width:190px;padding:14px;z-index:2;background:#13244065;
+ border:1px solid #ffffff24;border-radius:16px;backdrop-filter:blur(20px);box-shadow:0 10px 30px #0002}
+.widget .bigtime{font-size:27px;font-weight:600;letter-spacing:1px}
+.widget small{color:#d3e1f5}
+.gamegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:340px;margin:14px auto}
+.gamegrid button{aspect-ratio:1;border-radius:12px;background:#ffffff17;font-size:32px}
+.gamegrid button:hover{background:#ffffff2b}
+.memorygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:14px auto}
+.memorygrid button{height:66px;border-radius:11px;background:#ffffff17;font-size:25px}
+.memorygrid button.revealed{background:#3478dc99}
+.painttools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#paintCanvas{width:100%;height:300px;background:#fff;border-radius:12px;touch-action:none;cursor:crosshair}
+.timerface{text-align:center;font-size:54px;font-weight:650;padding:25px}
+.storeitem .appico{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;
+ background:linear-gradient(135deg,#ffffff2c,#ffffff0a);border:1px solid #ffffff20}
+.badge{font-size:10px;padding:3px 7px;border-radius:99px;background:#8ab4ff30;color:#d7eaff}
+@media(max-width:650px){.widget{display:none}.brandmark{top:9px}.desktop{padding-top:56px}}
+
+</style>
+</head>
+<body>
+<div id="wallpaper"></div>
+<div class="brandmark">✦ <em>WINDOWS</em> 12</div>
+<div class="widget"><div class="bigtime" id="widgetClock">--:--</div><small id="widgetDate">Добро пожаловать</small><div style="margin-top:10px;font-size:12px;color:#e5efff">✨ Хорошего дня!</div></div>
+<div class="desktop" id="desktop">
+ <button class="icon" data-app="explorer"><span class="glyph">📁</span><span>Проводник</span></button>
+ <button class="icon" data-app="browser"><span class="glyph">🌐</span><span>Браузер</span></button>
+ <button class="icon" data-app="notes"><span class="glyph">📝</span><span>Заметки</span></button>
+ <button class="icon" data-app="calculator"><span class="glyph">🧮</span><span>Калькулятор</span></button>
+ <button class="icon" data-app="settings"><span class="glyph">⚙️</span><span>Параметры</span></button>
+
+ <button class="icon" data-app="store"><span class="glyph">🛍️</span><span>Магазин</span></button>
+ <button class="icon" data-app="calendar"><span class="glyph">📅</span><span>Календарь</span></button>
+ <button class="icon" data-app="mail"><span class="glyph">✉️</span><span>Почта</span></button>
+ <button class="icon" data-app="photos"><span class="glyph">🖼️</span><span>Фотографии</span></button>
+ <button class="icon" data-app="downloads"><span class="glyph">⬇️</span><span>Загрузки</span></button>
+ <button class="icon" data-app="taskmgr"><span class="glyph">📊</span><span>Диспетчер задач</span></button>
+ <button class="icon" data-app="paint"><span class="glyph">🎨</span><span>Рисование</span></button>
+ <button class="icon" data-app="timer"><span class="glyph">⏱️</span><span>Таймер</span></button>
+ <button class="icon" data-app="games"><span class="glyph">🎮</span><span>Игры</span></button>
+ <button class="icon" data-app="recycle"><span class="glyph">🗑️</span><span>Корзина</span></button>
+ <button class="icon" data-app="about"><span class="glyph">🪟</span><span>О системе</span></button>
+</div>
+<div class="startmenu panel" id="startmenu">
+ <input class="search" id="appsearch" placeholder="🔎  Поиск приложений, настроек и документов">
+ <div class="sectionhead"><span>Закреплённые</span><span class="muted">Все приложения　›</span></div>
+ <div class="apps">
+  <button class="app" data-app="browser"><b>🌐</b><small>Браузер</small></button><button class="app" data-app="explorer"><b>📁</b><small>Проводник</small></button><button class="app" data-app="notes"><b>📝</b><small>Заметки</small></button><button class="app" data-app="calculator"><b>🧮</b><small>Калькулятор</small></button><button class="app" data-app="settings"><b>⚙️</b><small>Параметры</small></button><button class="app" data-app="about"><b>🪟</b><small>О системе</small></button>
+ </div>
+ <div class="sectionhead"><span>Рекомендуем</span><span class="muted">Недавно открытые</span></div>
+ <div class="recommended"><span style="font-size:25px">📄</span><div><b>Добро пожаловать</b><div class="muted">Начните работу с Windows 12 Web</div></div></div>
+ <div class="userrow"><span class="profilebadge"><i class="avatar" id="menuAvatar">П</i><span id="menuUser">Пользователь</span></span><button class="taskbtn" title="Выйти из профиля" onclick="logoutUser()">⇥</button></div>
+</div>
+<div class="taskbar">
+ <div class="task-center">
+  <button class="taskbtn start" id="startBtn" title="Пуск">⊞</button>
+  <button class="taskbtn" data-app="browser" title="Браузер">🌐</button><button class="taskbtn" data-app="explorer" title="Проводник">📁</button><button class="taskbtn" data-app="notes" title="Заметки">📝</button><button class="taskbtn" data-app="calculator" title="Калькулятор">🧮</button>
+ </div>
+ <div class="tray"><button class="taskbtn" id="quickBtn" title="Быстрые настройки" style="width:34px;height:34px;font-size:16px">⌃</button><span class="status">◉　🔊　🔋</span><span><span id="clock">19:52</span><br><span class="date" id="date">24.11.2026</span></span></div>
+</div>
+<div class="panel" id="quickPanel"><b>Быстрые настройки</b><div class="quicktiles">
+<button onclick="cycleWallpaper()">🎨　Обои</button><button onclick="document.body.classList.toggle('light');notify('Тема переключена')">🌙　Тема</button>
+<button onclick="notify('Режим не беспокоить включён')">🔕　Не беспокоить</button><button onclick="notify('Подключение: локальный режим')">📶　Сеть</button>
+</div><p class="muted" style="font-size:11px;margin:12px 2px 0">Windows 12 Web · Быстрые действия</p></div>
+<div class="toast panel" id="toast"></div>
+
+<!-- Windows -->
+<div class="window panel" id="explorer" style="left:18%;top:13%;width:680px;height:470px">
+ <div class="titlebar"><strong>📁　Проводник</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="explorer"><div class="sidebar"><div>🏠 Главная</div><div>🖥️ Рабочий стол</div><div>📥 Загрузки</div><div>📄 Документы</div><div>🖼️ Изображения</div><div>🎵 Музыка</div></div><div><div class="browserbar"><input value="Главная" aria-label="Путь"><button class="primary" onclick="notify('Это демонстрационная файловая система.')">＋ Создать</button></div><div class="files"><div class="file"><span>📁</span>Документы</div><div class="file"><span>📁</span>Изображения</div><div class="file"><span>📁</span>Загрузки</div><div class="file"><span>📁</span>Музыка</div><div class="file"><span>🖼️</span>Обои.jpg</div><div class="file"><span>📄</span>Привет.txt</div></div></div></div></div>
+</div>
+<div class="window panel" id="browser" style="left:22%;top:10%;width:700px;height:490px">
+ <div class="titlebar"><strong>🌐　Браузер</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="browserbar"><input id="url" value="https://www.wikipedia.org" placeholder="Введите адрес или поисковый запрос"><button class="primary" id="go">Перейти</button></div><div class="card" style="height:calc(100% - 52px);display:grid;place-items:center;text-align:center"><div><div style="font-size:50px">🌍</div><h2>Ваше окно в интернет</h2><p class="muted">Введите адрес сайта или поисковый запрос в строке выше.</p><button class="primary" onclick="document.getElementById('url').value='https://www.wikipedia.org';document.getElementById('go').click()">Открыть Википедию</button><p class="muted" style="font-size:11px;margin-top:20px">Для реального просмотра требуется подключение к интернету. Некоторые сайты запрещают встраивание.</p></div></div></div>
+</div>
+<div class="window panel" id="notes" style="left:30%;top:17%;width:480px;height:400px">
+ <div class="titlebar"><strong>📝　Заметки</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><p class="muted">Ваши заметки сохраняются автоматически в этом браузере.</p><textarea class="note" id="note" placeholder="Начните писать..."></textarea></div>
+</div>
+<div class="window panel" id="calculator" style="left:37%;top:15%;width:360px;height:480px">
+ <div class="titlebar"><strong>🧮　Калькулятор</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="calc"><input class="calcdisplay" id="display" value="0" readonly><div class="keys">
+ <button data-k="C">C</button><button data-k="(">(</button><button data-k=")">)</button><button class="op" data-k="÷">÷</button>
+ <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="×">×</button>
+ <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="−">−</button>
+ <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="+">+</button>
+ <button data-k="0">0</button><button data-k=".">.</button><button data-k="⌫">⌫</button><button class="op" data-k="=">=</button>
+ </div></div></div>
+</div>
+<div class="window panel" id="settings" style="left:25%;top:17%;width:600px;height:430px">
+ <div class="titlebar"><strong>⚙️　Параметры</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Параметры</h2><p class="muted">Настройте внешний вид и работу веб-рабочего стола.</p><div class="settingsgrid"><div class="setting">🎨 <b>Персонализация</b><p class="muted">Обои и цвета интерфейса</p><button class="primary" onclick="cycleWallpaper()">Сменить обои</button></div><div class="setting">🌙 <b>Режим оформления</b><p class="muted">Стеклянная тёмная тема</p><button class="primary" onclick="document.body.classList.toggle('light')">Переключить тему</button></div><div class="setting">🔔 <b>Уведомления</b><p class="muted">Системные сообщения</p><button class="primary" onclick="notify('Уведомления включены.')">Проверить</button></div><div class="setting">💻 <b>Система</b><p class="muted">Windows 12 Web Edition</p><span class="muted">Версия 12.0.1</span></div></div></div>
+</div>
+<div class="window panel" id="about" style="left:30%;top:20%;width:450px;height:330px">
+ <div class="titlebar"><strong>🪟　О системе</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content" style="text-align:center"><div style="font-size:62px;color:#9bd2ff">⊞</div><h2>Windows 12 Web</h2><p class="muted">Современный веб-рабочий стол в стиле Windows.</p><p>Версия 12.0.1 · HTML Edition</p><p class="muted" style="font-size:12px">Это интерактивная браузерная имитация, а не настоящая операционная система Windows.</p></div>
+</div>
+
+<div class="window panel" id="store" style="left:16%;top:9%;width:760px;height:540px">
+ <div class="titlebar"><strong>🛍️　Магазин приложений</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Магазин Windows</h2><p class="muted">Полезные приложения для вашего рабочего стола. Нажмите «Установить», чтобы добавить приложение в меню.</p><div class="storegrid" id="storeGrid"></div></div>
+</div>
+<div class="window panel" id="downloads" style="left:23%;top:12%;width:650px;height:470px">
+ <div class="titlebar"><strong>⬇️　Загрузки и файлы</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Загрузки</h2><div class="downloadzone"><div style="font-size:40px">📥</div><b>Добавьте файлы в свою систему</b><p class="muted">Выберите файлы на устройстве. Они появятся в списке загрузок этой веб-системы.</p><input type="file" id="filePicker" multiple style="max-width:100%"></div><div class="downloadlist" id="downloadList"><p class="muted">Пока нет загруженных файлов.</p></div></div>
+</div>
+<div class="window panel" id="calendar" style="left:28%;top:16%;width:460px;height:390px">
+ <div class="titlebar"><strong>📅　Календарь</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2 id="calendarToday"></h2><p class="muted">Ваш календарь и быстрые заметки о планах.</p><div class="card"><label>Новое событие</label><input id="eventText" class="search" style="margin:8px 0" placeholder="Например, встреча в 15:00"><button class="primary" onclick="addEvent()">Добавить</button></div><div id="eventList" class="downloadlist"></div></div>
+</div>
+<div class="window panel" id="mail" style="left:20%;top:13%;width:600px;height:440px">
+ <div class="titlebar"><strong>✉️　Почта</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Почта</h2><p class="muted">Демонстрационный почтовый блокнот — он не отправляет письма.</p><input id="mailTo" class="search" placeholder="Кому"><input id="mailSubject" class="search" style="margin-top:8px" placeholder="Тема"><textarea id="mailBody" class="note" style="margin-top:8px;height:170px" placeholder="Текст письма"></textarea><button class="primary" style="margin-top:10px" onclick="saveMailDraft()">Сохранить черновик</button><span id="draftStatus" class="muted"></span></div>
+</div>
+<div class="window panel" id="photos" style="left:24%;top:14%;width:620px;height:450px">
+ <div class="titlebar"><strong>🖼️　Фотографии</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Фотографии</h2><p class="muted">Выберите изображения на устройстве для просмотра.</p><input type="file" id="photoPicker" accept="image/*" multiple><div id="photoGallery" class="storegrid" style="margin-top:15px"></div></div>
+</div>
+<div class="window panel" id="taskmgr" style="left:32%;top:18%;width:440px;height:360px">
+ <div class="titlebar"><strong>📊　Диспетчер задач</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Работающие приложения</h2><p class="muted">Окна, открытые в этой веб-системе.</p><div id="taskList" class="downloadlist"></div><button class="primary" onclick="refreshTasks()">Обновить список</button></div>
+</div>
+
+<div class="window panel" id="games" style="left:17%;top:10%;width:720px;height:520px">
+ <div class="titlebar"><strong>🎮　Игровой центр</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Мини-игры</h2><p class="muted">Небольшая коллекция игр, которые работают прямо в этом окне.</p>
+ <div class="storegrid">
+ <div class="storeitem"><div class="appico">⭕</div><b>Крестики-нолики</b><p>Сыграйте партию против друга на одном компьютере.</p><button class="primary" onclick="showGame('tic')">Играть</button></div>
+ <div class="storeitem"><div class="appico">🧠</div><b>Найди пару</b><p>Откройте одинаковые карточки и проверьте память.</p><button class="primary" onclick="showGame('memory')">Играть</button></div>
+ <div class="storeitem"><div class="appico">🐍</div><b>Змейка</b><p>Собирайте яблоки, не врезаясь в себя.</p><button class="primary" onclick="showGame('snake')">Играть</button></div>
+ </div><div id="gameArea" class="card" style="margin-top:14px;min-height:190px"><p class="muted">Выберите игру выше.</p></div></div>
+</div>
+<div class="window panel" id="paint" style="left:18%;top:12%;width:690px;height:500px">
+ <div class="titlebar"><strong>🎨　Рисование</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Свободное рисование</h2><div class="painttools"><label>Цвет <input type="color" id="paintColor" value="#245bd6"></label><label>Размер <input type="range" id="paintSize" min="1" max="30" value="5"></label><button class="primary" onclick="clearPaint()">Очистить</button><button class="primary" onclick="downloadPaint()">Скачать рисунок</button></div><canvas id="paintCanvas" width="900" height="420"></canvas></div>
+</div>
+<div class="window panel" id="timer" style="left:34%;top:16%;width:390px;height:390px">
+ <div class="titlebar"><strong>⏱️　Таймер и секундомер</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="timerface" id="timerFace">05:00</div><div style="display:flex;gap:8px;justify-content:center"><input id="timerMinutes" type="number" min="1" max="180" value="5" style="width:90px;padding:9px;border-radius:9px;border:0"><button class="primary" onclick="startTimer()">Старт</button><button class="primary" onclick="pauseTimer()">Пауза</button><button class="primary" onclick="resetTimer()">Сброс</button></div><p class="muted" style="text-align:center">Простой таймер для работы и отдыха.</p></div>
+</div>
+<div class="window panel" id="recycle" style="left:26%;top:17%;width:480px;height:360px">
+ <div class="titlebar"><strong>🗑️　Корзина</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div style="font-size:45px;text-align:center;margin:20px">🗑️</div><h3 style="text-align:center">Корзина пуста</h3><p class="muted" style="text-align:center">В этой демонстрационной версии удалённые файлы не перемещаются в корзину.</p></div>
+</div>
+
+<div id="loginScreen" class="show"><div class="loginbox panel"><div class="loginlogo">⊞</div><h2>Добро пожаловать</h2><p class="muted">Войдите в Windows 12 Web</p><input id="loginName" maxlength="24" placeholder="Имя пользователя" autocomplete="username"><input id="loginPassword" type="password" placeholder="Пароль (необязательно)" autocomplete="current-password"><div id="loginError"></div><button class="primary" onclick="loginUser()">Войти</button><p class="muted" style="font-size:11px;margin-top:15px">Локальный профиль для этого браузера. Это не защищённая онлайн-учётная запись.</p></div></div>
+
+<script>
+const menu=document.getElementById('startmenu'),start=document.getElementById('startBtn');
+let z=30;
+function openApp(id){const w=document.getElementById(id);if(!w)return;w.classList.add('open');w.style.zIndex=++z;menu.classList.remove('show');document.querySelectorAll('.taskbtn[data-app]').forEach(b=>b.classList.toggle('active',b.dataset.app===id));}
+document.querySelectorAll('[data-app]').forEach(b=>b.addEventListener('click',()=>openApp(b.dataset.app)));
+start.addEventListener('click',()=>menu.classList.toggle('show'));
+document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!start.contains(e.target)&&!e.target.closest('[data-app]'))menu.classList.remove('show')});
+document.querySelectorAll('.window').forEach(w=>{
+ const bar=w.querySelector('.titlebar');let drag=false,dx=0,dy=0;
+ bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop;w.style.zIndex=++z;bar.setPointerCapture(e.pointerId)});
+ bar.addEventListener('pointermove',e=>{if(!drag)return;w.style.left=Math.max(0,Math.min(innerWidth-w.offsetWidth,e.clientX-dx))+'px';w.style.top=Math.max(0,Math.min(innerHeight-90,e.clientY-dy))+'px'});
+ bar.addEventListener('pointerup',()=>drag=false);
+ w.querySelector('.close').onclick=()=>w.classList.remove('open');
+ w.querySelector('.min').onclick=()=>w.classList.remove('open');
+ w.querySelector('.max').onclick=()=>{if(w.dataset.max==='1'){w.style.left=w.dataset.left;w.style.top=w.dataset.top;w.style.width=w.dataset.width;w.style.height=w.dataset.height;w.dataset.max='0'}else{Object.assign(w.dataset,{left:w.style.left,top:w.style.top,width:w.style.width,height:w.style.height,max:'1'});w.style.left='8px';w.style.top='8px';w.style.width='calc(100vw - 16px)';w.style.height='calc(100vh - 88px)'}};
+ w.addEventListener('pointerdown',()=>w.style.zIndex=++z);
+});
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('date').textContent=d.toLocaleDateString('ru-RU')}tick();setInterval(tick,1000);
+function notify(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)}
+document.getElementById('note').value=localStorage.getItem('w12-note')||'';document.getElementById('note').addEventListener('input',e=>localStorage.setItem('w12-note',e.target.value));
+document.getElementById('go').onclick=()=>{let v=document.getElementById('url').value.trim();if(!v)return;if(!/^https?:\/\//i.test(v)){v='https://www.google.com/search?q='+encodeURIComponent(v)}window.open(v,'_blank','noopener')};
+let expr='';const disp=document.getElementById('display');document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{let k=b.dataset.k;if(k==='C')expr='';else if(k==='⌫')expr=expr.slice(0,-1);else if(k==='='){try{let safe=expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');if(!/^[0-9+*/(). -]+$/.test(safe))throw 0;let val=Function('"use strict";return ('+safe+')')();expr=Number.isFinite(val)?String(val):'Ошибка'}catch{expr='Ошибка'}}else if(expr==='Ошибка')expr=k;else expr+=k;disp.value=expr||'0'});
+let wallpaper=0;function cycleWallpaper(){const bgs=['radial-gradient(ellipse at 70% 43%,#5ca8e8 0,#23528b 23%,transparent 48%),linear-gradient(135deg,#101c39,#142c52 48%,#071629)','radial-gradient(ellipse at 30% 40%,#f59e0b 0,#9333ea 35%,transparent 60%),linear-gradient(135deg,#17133a,#3b1d52)','radial-gradient(ellipse at 70% 35%,#34d399 0,#0e7490 32%,transparent 58%),linear-gradient(135deg,#071c2b,#103b46)'];document.getElementById('wallpaper').style.background=bgs[++wallpaper%3];notify('Обои изменены')};
+document.getElementById('appsearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.apps .app').forEach(a=>a.style.display=a.innerText.toLowerCase().includes(q)?'block':'none')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')menu.classList.remove('show');if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='e'){e.preventDefault();openApp('explorer')}});
+
+// Локальный профиль: имя хранится только в этом браузере.
+function updateProfile(){const name=localStorage.getItem('w12-user')||'Пользователь';document.getElementById('menuUser').textContent=name;document.getElementById('menuAvatar').textContent=name.trim().charAt(0).toUpperCase()||'П'}
+function loginUser(){const name=document.getElementById('loginName').value.trim();if(!name){document.getElementById('loginError').textContent='Введите имя пользователя.';return}localStorage.setItem('w12-user',name);document.getElementById('loginScreen').classList.remove('show');updateProfile();notify('Добро пожаловать, '+name+'!')}
+function logoutUser(){localStorage.removeItem('w12-user');document.getElementById('startmenu').classList.remove('show');document.getElementById('loginName').value='';document.getElementById('loginPassword').value='';document.getElementById('loginScreen').classList.add('show')}
+document.getElementById('loginName').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser()});
+if(localStorage.getItem('w12-user')){document.getElementById('loginScreen').classList.remove('show');updateProfile()}
+const storeApps=[
+ {id:'calendar',icon:'📅',name:'Календарь',desc:'Планируйте события и важные дела.'},
+ {id:'mail',icon:'✉️',name:'Почта',desc:'Создавайте и сохраняйте черновики писем.'},
+ {id:'photos',icon:'🖼️',name:'Фотографии',desc:'Просматривайте изображения с устройства.'},
+ {id:'downloads',icon:'⬇️',name:'Загрузки',desc:'Добавляйте файлы в список загрузок.'},
+ {id:'taskmgr',icon:'📊',name:'Диспетчер задач',desc:'Смотрите открытые приложения.'},
+ {id:'notes',icon:'📝',name:'Заметки',desc:'Записывайте идеи — сохранение автоматически.'},
+ {id:'calculator',icon:'🧮',name:'Калькулятор',desc:'Выполняйте повседневные вычисления.'},
+ {id:'games',icon:'🎮',name:'Игровой центр',desc:'Три мини-игры для короткого отдыха.'},
+ {id:'paint',icon:'🎨',name:'Рисование',desc:'Создавайте рисунки и скачивайте их.'},
+ {id:'timer',icon:'⏱️',name:'Таймер',desc:'Удобный таймер для фокусировки.'},
+ {id:'recycle',icon:'🗑️',name:'Корзина',desc:'Раздел для удалённых файлов.'}
+];
+let installedApps=JSON.parse(localStorage.getItem('w12-installed')||'["calendar","mail","photos","downloads","taskmgr","notes","calculator"]');
+function renderStore(){document.getElementById('storeGrid').innerHTML=storeApps.map(a=>`<div class="storeitem"><div class="appico">${a.icon}</div><b>${a.name}</b><p>${a.desc}</p><button class="primary" onclick="toggleInstall('${a.id}')">${installedApps.includes(a.id)?'Удалить':'Установить'}</button></div>`).join('')}
+function toggleInstall(id){installedApps=installedApps.includes(id)?installedApps.filter(x=>x!==id):[...installedApps,id];localStorage.setItem('w12-installed',JSON.stringify(installedApps));renderStore();notify(installedApps.includes(id)?'Приложение установлено':'Приложение удалено')}
+renderStore();
+const uploadedFiles=[];
+document.getElementById('filePicker').addEventListener('change',e=>{for(const f of e.target.files)uploadedFiles.push(f);renderDownloads();e.target.value=''});
+function renderDownloads(){const box=document.getElementById('downloadList');if(!uploadedFiles.length){box.innerHTML='<p class="muted">Пока нет загруженных файлов.</p>';return}box.innerHTML=uploadedFiles.map((f,i)=>`<div class="downloadrow"><span>📄</span><span class="fname">${f.name}</span><small class="muted">${(f.size/1024).toFixed(1)} КБ</small><button class="primary" onclick="saveLocalFile(${i})">Скачать</button></div>`).join('')}
+function saveLocalFile(i){const f=uploadedFiles[i],a=document.createElement('a'),u=URL.createObjectURL(f);a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+document.getElementById('photoPicker').addEventListener('change',e=>{const g=document.getElementById('photoGallery');g.innerHTML='';[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f),d=document.createElement('div');d.className='storeitem';d.innerHTML=`<img src="${u}" style="width:100%;height:120px;object-fit:contain"><small>${f.name.replace(/[<>&"]/g,'')}</small>`;g.appendChild(d)})});
+document.getElementById('calendarToday').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function addEvent(){const input=document.getElementById('eventText'),v=input.value.trim();if(!v)return;const arr=JSON.parse(localStorage.getItem('w12-events')||'[]');arr.push(v);localStorage.setItem('w12-events',JSON.stringify(arr));input.value='';renderEvents()}
+function renderEvents(){const arr=JSON.parse(localStorage.getItem('w12-events')||'[]');document.getElementById('eventList').innerHTML=arr.length?arr.map((v,i)=>`<div class="downloadrow">📌 <span class="fname">${v.replace(/[<>&"]/g,'')}</span><button onclick="removeEvent(${i})">✕</button></div>`).join(''):'<p class="muted">Событий пока нет.</p>'}
+function removeEvent(i){const a=JSON.parse(localStorage.getItem('w12-events')||'[]');a.splice(i,1);localStorage.setItem('w12-events',JSON.stringify(a));renderEvents()}renderEvents();
+function saveMailDraft(){localStorage.setItem('w12-mail-draft',JSON.stringify({to:document.getElementById('mailTo').value,subject:document.getElementById('mailSubject').value,body:document.getElementById('mailBody').value}));document.getElementById('draftStatus').textContent=' Черновик сохранён'}
+try{const d=JSON.parse(localStorage.getItem('w12-mail-draft')||'{}');document.getElementById('mailTo').value=d.to||'';document.getElementById('mailSubject').value=d.subject||'';document.getElementById('mailBody').value=d.body||''}catch{}
+function refreshTasks(){const names={store:'Магазин',calendar:'Календарь',mail:'Почта',photos:'Фотографии',downloads:'Загрузки',taskmgr:'Диспетчер задач',explorer:'Проводник',browser:'Браузер',notes:'Заметки',calculator:'Калькулятор',settings:'Параметры',about:'О системе',paint:'Рисование',timer:'Таймер',games:'Игровой центр',recycle:'Корзина'};const opened=[...document.querySelectorAll('.window.open')];document.getElementById('taskList').innerHTML=opened.length?opened.map(w=>`<div class="downloadrow">🟢 <span class="fname">${names[w.id]||w.id}</span><button class="primary" onclick="document.getElementById('${w.id}').classList.remove('open');refreshTasks()">Завершить</button></div>`).join(''):'<p class="muted">Нет открытых приложений.</p>'}
+
+
+// Quick settings panel
+document.getElementById('quickBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('quickPanel').classList.toggle('show')});
+document.addEventListener('click',e=>{if(!e.target.closest('#quickPanel')&&!e.target.closest('#quickBtn'))document.getElementById('quickPanel').classList.remove('show')});
+function updateWidgetClock(){const d=new Date();document.getElementById('widgetClock').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('widgetDate').textContent=d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
+updateWidgetClock();setInterval(updateWidgetClock,1000);
+
+// Paint app
+const paintCanvas=document.getElementById('paintCanvas'),paintCtx=paintCanvas.getContext('2d');
+paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height);
+let painting=false;
+function paintPoint(e){const r=paintCanvas.getBoundingClientRect();return {x:(e.clientX-r.left)*paintCanvas.width/r.width,y:(e.clientY-r.top)*paintCanvas.height/r.height}}
+paintCanvas.addEventListener('pointerdown',e=>{painting=true;paintCanvas.setPointerCapture(e.pointerId);const p=paintPoint(e);paintCtx.beginPath();paintCtx.moveTo(p.x,p.y)});
+paintCanvas.addEventListener('pointermove',e=>{if(!painting)return;const p=paintPoint(e);paintCtx.lineWidth=Number(document.getElementById('paintSize').value);paintCtx.lineCap='round';paintCtx.strokeStyle=document.getElementById('paintColor').value;paintCtx.lineTo(p.x,p.y);paintCtx.stroke()});
+paintCanvas.addEventListener('pointerup',()=>painting=false);paintCanvas.addEventListener('pointercancel',()=>painting=false);
+function clearPaint(){paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height)}
+function downloadPaint(){const a=document.createElement('a');a.download='my-drawing.png';a.href=paintCanvas.toDataURL('image/png');a.click()}
+
+// Timer
+let timerSeconds=300,timerInterval=null;
+function paintTimer(){document.getElementById('timerFace').textContent=String(Math.floor(timerSeconds/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0')}
+function startTimer(){if(timerInterval)return;if(timerSeconds<=0)timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;timerInterval=setInterval(()=>{timerSeconds--;paintTimer();if(timerSeconds<=0){pauseTimer();notify('⏰ Время вышло!')}},1000)}
+function pauseTimer(){clearInterval(timerInterval);timerInterval=null}
+function resetTimer(){pauseTimer();timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;paintTimer()}
+paintTimer();
+
+// Games
+let ticTurn='❌',ticCells=Array(9).fill(''),memoryDeck=[],memoryOpen=[],memoryLock=false,snakeTimer=null,snakeState=null;
+function showGame(which){const area=document.getElementById('gameArea');
+ if(which==='tic'){ticCells=Array(9).fill('');ticTurn='❌';renderTic();return}
+ if(which==='memory'){memoryDeck=['🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐', '🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐'].sort(()=>Math.random()-.5);memoryOpen=[];memoryLock=false;renderMemory();return}
+ if(which==='snake'){startSnake();return}
+}
+function renderTic(){const a=document.getElementById('gameArea');a.innerHTML='<b>Крестики-нолики</b><p class="muted">Ход: '+ticTurn+'</p><div class="gamegrid">'+ticCells.map((v,i)=>`<button onclick="ticMove(${i})">${v}</button>`).join('')+'</div><button class="primary" onclick="showGame(\'tic\')">Новая игра</button>'}
+function ticMove(i){if(ticCells[i])return;ticCells[i]=ticTurn;const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const win=lines.some(l=>l.every(n=>ticCells[n]===ticTurn));if(win){renderTic();document.querySelector('#gameArea p').textContent='Победили '+ticTurn+'!';return}if(ticCells.every(Boolean)){renderTic();document.querySelector('#gameArea p').textContent='Ничья!';return}ticTurn=ticTurn==='❌'?'⭕':'❌';renderTic()}
+function renderMemory(){document.getElementById('gameArea').innerHTML='<b>Найди пару</b><p class="muted">Совпадений: '+(memoryOpen.filter(i=>memoryDeck[i]==='').length/2)+'</p><div class="memorygrid">'+memoryDeck.map((v,i)=>`<button class="${v===''?'revealed':''}" onclick="flipMemory(${i})">${v===''?'✓':memoryOpen.includes(i)?v:'❔'}</button>`).join('')+'</div><button class="primary" onclick="showGame(\'memory\')">Перемешать</button>'}
+function flipMemory(i){if(memoryLock||memoryDeck[i]===''||memoryOpen.includes(i))return;memoryOpen.push(i);renderMemory();if(memoryOpen.length%2===0){const [a,b]=memoryOpen.slice(-2);if(memoryDeck[a]===memoryDeck[b]){memoryDeck[a]='';memoryDeck[b]='';memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);renderMemory();if(memoryDeck.every(v=>v===''))document.querySelector('#gameArea p').textContent='Победа! Все пары найдены.'}else{memoryLock=true;setTimeout(()=>{memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);memoryLock=false;renderMemory()},750)}}}
+function startSnake(){clearInterval(snakeTimer);snakeState={body:[{x:7,y:7},{x:6,y:7},{x:5,y:7}],dir:{x:1,y:0},food:{x:12,y:7},score:0,over:false};document.getElementById('gameArea').innerHTML='<b>Змейка</b> <span id="snakeScore">Очки: 0</span><p class="muted">Управление — стрелки на клавиатуре.</p><canvas id="snakeCanvas" width="360" height="260" style="display:block;max-width:100%;background:#0d1728;border-radius:12px;margin:10px auto"></canvas><button class="primary" onclick="startSnake()">Заново</button>';drawSnake();snakeTimer=setInterval(stepSnake,140)}
+function drawSnake(){const c=document.getElementById('snakeCanvas');if(!c||!snakeState)return;const x=c.getContext('2d'),s=20;x.clearRect(0,0,c.width,c.height);x.fillStyle='#15263c';x.fillRect(0,0,c.width,c.height);x.fillStyle='#fb7185';x.fillRect(snakeState.food.x*s,snakeState.food.y*s,s-2,s-2);snakeState.body.forEach((p,i)=>{x.fillStyle=i?'#60a5fa':'#a7f3d0';x.fillRect(p.x*s,p.y*s,s-2,s-2)});document.getElementById('snakeScore').textContent='Очки: '+snakeState.score}
+function stepSnake(){const st=snakeState;if(!st||st.over)return;const h={x:st.body[0].x+st.dir.x,y:st.body[0].y+st.dir.y};if(h.x<0||h.y<0||h.x>=18||h.y>=13||st.body.some(p=>p.x===h.x&&p.y===h.y)){st.over=true;clearInterval(snakeTimer);notify('Игра окончена! Очки: '+st.score);return}st.body.unshift(h);if(h.x===st.food.x&&h.y===st.food.y){st.score++;st.food={x:Math.floor(Math.random()*18),y:Math.floor(Math.random()*13)}}else st.body.pop();drawSnake()}
+document.addEventListener('keydown',e=>{if(!snakeState||snakeState.over||!document.getElementById('games').classList.contains('open'))return;const map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};const d=map[e.key];if(d&&!(d.x===-snakeState.dir.x&&d.y===-snakeState.dir.y)){snakeState.dir=d;e.preventDefault()}});
+
+</script>
+</body></html>
