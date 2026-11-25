@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Windows 12 Nova — Desktop</title>
+<style>
+:root{--glass:rgba(24,31,49,.72);--line:rgba(255,255,255,.16);--text:#f7f8ff;--muted:#b8c2d9;--accent:#8ab4ff;--shadow:0 22px 70px #0006}
+*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;color:var(--text);font:14px/1.45 "Segoe UI",Inter,Arial,sans-serif;background:#111827}
+button,input,textarea{font:inherit}button{color:inherit;cursor:pointer;border:0}
+#wallpaper{position:fixed;inset:0;background:radial-gradient(ellipse at 70% 43%,#5ca8e8 0,#23528b 23%,transparent 48%),radial-gradient(ellipse at 30% 80%,#8b61ba 0,transparent 38%),linear-gradient(135deg,#101c39,#142c52 48%,#071629);z-index:-2}
+#wallpaper:before,#wallpaper:after{content:"";position:absolute;border-radius:50%;filter:blur(2px);transform:rotate(-25deg)}
+#wallpaper:before{width:75vw;height:32vw;left:18vw;top:20vh;background:linear-gradient(130deg,#7dd3fc88,#3267c888 50%,#a78bfa66);box-shadow:0 0 100px #60a5fa66}
+#wallpaper:after{width:65vw;height:19vw;left:24vw;top:35vh;background:linear-gradient(90deg,#b9e7ff55,#2563eb77);filter:blur(24px)}
+.desktop{position:absolute;inset:0 0 64px;padding:24px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:14px}
+.icon{width:82px;min-height:82px;padding:8px 4px;border-radius:12px;text-align:center;background:transparent;color:white;text-shadow:0 2px 5px #0008}
+.icon:hover{background:#ffffff20}.icon .glyph{font-size:32px;display:block;margin-bottom:4px}.icon span:last-child{font-size:12px}
+.taskbar{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(12,20,37,.62);backdrop-filter:blur(28px);border-top:1px solid #ffffff24;display:flex;align-items:center;justify-content:center;z-index:1000}
+.task-center{display:flex;gap:7px;align-items:center}.taskbtn{width:44px;height:44px;border-radius:13px;background:transparent;font-size:21px}.taskbtn:hover,.taskbtn.active{background:#ffffff20}.taskbtn.start{font-size:24px;color:#a9d6ff}
+.tray{position:absolute;right:18px;display:flex;align-items:center;gap:14px;text-align:right;color:#eef4ff;font-size:12px}.tray .status{font-size:17px}
+.panel{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(34px) saturate(150%);box-shadow:var(--shadow);border-radius:18px}
+.startmenu{display:none;position:fixed;z-index:1100;bottom:76px;left:50%;transform:translateX(-50%);width:min(590px,94vw);padding:22px}
+.startmenu.show{display:block;animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.search{width:100%;border:1px solid #ffffff28;background:#ffffff13;color:white;border-radius:11px;padding:12px 15px;outline:none}.search::placeholder{color:#c6d2e6}
+.sectionhead{display:flex;justify-content:space-between;margin:20px 2px 12px;font-weight:600}.apps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.app{border-radius:12px;padding:12px 4px;text-align:center;background:transparent}.app:hover{background:#ffffff1c}.app b{display:block;font-size:27px;margin-bottom:5px;font-weight:400}.app small{font-size:11px}
+.recommended{display:flex;gap:12px;padding:10px;border-radius:10px;background:#ffffff0c;align-items:center}.userrow{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid #ffffff22}.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#8bd5ff,#8b5cf6);display:inline-grid;place-items:center;margin-right:8px}
+.window{position:absolute;z-index:20;min-width:300px;min-height:180px;width:620px;height:430px;max-width:calc(100vw - 24px);max-height:calc(100vh - 90px);display:none;overflow:hidden;resize:both}
+.window.open{display:flex;flex-direction:column;animation:win .16s ease-out}@keyframes win{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.titlebar{height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 16px;border-bottom:1px solid #ffffff1c;cursor:move;user-select:none}
+.titlebar strong{font-weight:600}.wincontrols{display:flex;gap:4px}.wincontrols button{width:34px;height:30px;background:transparent;border-radius:7px}.wincontrols button:hover{background:#ffffff20}.wincontrols .close:hover{background:#e5484d}
+.content{padding:18px;overflow:auto;flex:1;background:#111a2b45}
+.card{background:#ffffff0d;border:1px solid #ffffff18;border-radius:13px;padding:14px}.muted{color:var(--muted)}.row{display:flex;gap:12px}.col{flex:1;min-width:0}
+.browserbar{display:flex;gap:8px;margin-bottom:14px}.browserbar input{flex:1;min-width:0;background:#ffffff13;border:1px solid #ffffff25;color:white;border-radius:9px;padding:9px 12px}
+.primary{background:#3478dc;border-radius:9px;padding:9px 14px}.primary:hover{background:#4b8eea}
+.explorer{display:grid;grid-template-columns:145px 1fr;gap:15px;height:100%}.sidebar div{padding:8px;border-radius:8px}.sidebar div:hover{background:#ffffff17}.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;align-content:start}.file{padding:12px 5px;text-align:center;border-radius:10px}.file:hover{background:#ffffff16}.file span{font-size:30px;display:block}
+textarea.note{width:100%;height:100%;min-height:230px;background:#fff8cf;color:#333;border:0;border-radius:10px;padding:16px;resize:none;outline:none;font:15px/1.6 "Segoe UI",sans-serif}
+.calc{max-width:330px;margin:auto}.calcdisplay{width:100%;height:65px;background:#ffffff10;border:0;border-radius:12px;color:white;text-align:right;padding:12px;font-size:28px;margin-bottom:12px}.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.keys button{height:52px;border-radius:10px;background:#ffffff15;font-size:18px}.keys button:hover{background:#ffffff2a}.keys .op{background:#3478dc88}
+.settingsgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.setting{padding:15px;border-radius:12px;background:#ffffff10}
+.toast{position:fixed;right:18px;bottom:82px;padding:13px 18px;z-index:2000;display:none}
+@media(max-width:600px){.tray{right:8px}.tray .date{display:none}.task-center{transform:translateX(-30px)}.desktop{padding:10px;gap:5px}.icon{width:72px}.startmenu{bottom:70px}.apps{grid-template-columns:repeat(3,1fr)}.window{left:8px!important;top:8px!important;width:calc(100vw - 16px)!important;height:calc(100vh - 88px)!important}.explorer{grid-template-columns:95px 1fr}}
+
+#loginScreen{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 35%,#315b91 0,#172b4d 48%,#081323 100%);backdrop-filter:blur(20px)}
+#loginScreen.show{display:flex}
+.loginbox{width:min(390px,92vw);padding:32px;text-align:center}
+.loginbox .loginlogo{font-size:58px;color:#b9e0ff;margin-bottom:8px}
+.loginbox input{width:100%;margin:9px 0;padding:12px 14px;border-radius:10px;border:1px solid #ffffff30;background:#ffffff13;color:white;outline:none}
+.loginbox input::placeholder{color:#c5d1e4}
+.loginbox button{width:100%;margin-top:10px}
+.storegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.storeitem{padding:14px;border-radius:13px;background:#ffffff10;border:1px solid #ffffff18;display:flex;flex-direction:column;gap:8px;min-height:170px}
+.storeitem .appico{font-size:34px}.storeitem p{margin:0;color:var(--muted);font-size:12px;flex:1}
+.storeitem button{align-self:flex-start}
+.downloadzone{border:1px dashed #ffffff55;border-radius:14px;padding:25px;text-align:center;background:#ffffff08}
+.downloadlist{display:grid;gap:8px;margin-top:14px}
+.downloadrow{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#ffffff0d}
+.downloadrow .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profilebadge{display:flex;align-items:center;gap:8px}
+#loginError{color:#ffb4b4;min-height:20px;font-size:12px}
+
+
+/* Windows 12 visual refresh */
+.brandmark{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:5;
+  padding:7px 16px;border:1px solid #ffffff2a;border-radius:999px;background:#101b31a8;
+  backdrop-filter:blur(18px);font-size:13px;letter-spacing:2.8px;font-weight:700;color:#e8f4ff;
+  box-shadow:0 8px 30px #0003;pointer-events:none}
+.brandmark em{font-style:normal;color:#9bd4ff}
+.icon{border:1px solid transparent;transition:background .15s,border-color .15s,transform .15s}
+.icon:hover{border-color:#ffffff22;transform:translateY(-1px)}
+.icon .glyph{width:48px;height:48px;margin:0 auto 5px;display:grid;place-items:center;
+  border-radius:15px;background:linear-gradient(145deg,#ffffff2b,#ffffff09);
+  border:1px solid #ffffff24;box-shadow:0 5px 15px #0002;font-size:26px;text-shadow:none}
+.taskbar{box-shadow:0 -8px 35px #0002}
+.taskbtn{border:1px solid transparent;transition:.15s}
+.taskbtn:hover{border-color:#ffffff20;transform:translateY(-2px)}
+#quickPanel{display:none;position:fixed;right:16px;bottom:76px;width:min(330px,calc(100vw - 32px));padding:16px;z-index:1200}
+#quickPanel.show{display:block}
+.quicktiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.quicktiles button{padding:13px 8px;border-radius:12px;background:#ffffff14;text-align:left}
+.quicktiles button:hover{background:#ffffff28}
+.widget{position:fixed;right:22px;top:24px;width:190px;padding:14px;z-index:2;background:#13244065;
+ border:1px solid #ffffff24;border-radius:16px;backdrop-filter:blur(20px);box-shadow:0 10px 30px #0002}
+.widget .bigtime{font-size:27px;font-weight:600;letter-spacing:1px}
+.widget small{color:#d3e1f5}
+.gamegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:340px;margin:14px auto}
+.gamegrid button{aspect-ratio:1;border-radius:12px;background:#ffffff17;font-size:32px}
+.gamegrid button:hover{background:#ffffff2b}
+.memorygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:14px auto}
+.memorygrid button{height:66px;border-radius:11px;background:#ffffff17;font-size:25px}
+.memorygrid button.revealed{background:#3478dc99}
+.painttools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#paintCanvas{width:100%;height:300px;background:#fff;border-radius:12px;touch-action:none;cursor:crosshair}
+.timerface{text-align:center;font-size:54px;font-weight:650;padding:25px}
+.storeitem .appico{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;
+ background:linear-gradient(135deg,#ffffff2c,#ffffff0a);border:1px solid #ffffff20}
+.badge{font-size:10px;padding:3px 7px;border-radius:99px;background:#8ab4ff30;color:#d7eaff}
+@media(max-width:650px){.widget{display:none}.brandmark{top:9px}.desktop{padding-top:56px}}
+
+
+/* Windows 11-inspired visual refinement */
+:root{--glass:rgba(245,248,255,.84);--line:rgba(255,255,255,.65);--text:#182235;--muted:#64748b;--accent:#2563eb;--shadow:0 24px 80px #0b1b3540}
+body{color:var(--text);background:#dce8f5}
+#wallpaper{background:radial-gradient(ellipse at 72% 40%,#d9f1ff 0,#8ebbe9 23%,transparent 49%),radial-gradient(ellipse at 24% 78%,#c9b8f5 0,transparent 38%),linear-gradient(135deg,#d9e8f8,#a9c8eb 52%,#789bc9)}
+#wallpaper:before{background:linear-gradient(130deg,#ffffffa8,#5d9ee888 50%,#8b7be866);box-shadow:0 0 120px #fff8}
+#wallpaper:after{background:linear-gradient(90deg,#ffffff99,#4f8bd477);filter:blur(30px)}
+.brandmark{color:#17365f;background:#ffffff8c;border-color:#ffffffb8;box-shadow:0 8px 30px #29466a20}
+.brandmark em{color:#1265bd}
+.icon{color:#17304f;text-shadow:0 1px 3px #fff9}
+.icon .glyph{background:linear-gradient(145deg,#ffffffed,#dceaffb8);border:1px solid #ffffffd9;box-shadow:0 6px 18px #31547a20}
+.icon:hover{background:#ffffff70;border-color:#ffffffb8}
+.taskbar{height:66px;background:#f3f7fbd9;border-top:1px solid #ffffffd9;backdrop-filter:blur(34px) saturate(160%);box-shadow:0 -8px 35px #29466a20}
+.taskbtn{color:#1e3553}.taskbtn:hover,.taskbtn.active{background:#dbeafe}.taskbtn.start{color:#1671d8}
+.tray{color:#203652}
+.panel{background:rgba(248,251,255,.90);border:1px solid #ffffffd9;backdrop-filter:blur(38px) saturate(160%);box-shadow:0 24px 80px #203b5d35;color:#182b45}
+.startmenu{background:rgba(247,250,255,.95)}
+.search{background:#fff;color:#203652;border:1px solid #cbd8e8}.search::placeholder{color:#7b8ba1}
+.sectionhead,.recommended,.userrow{color:#203652}
+.recommended,.card,.setting,.storeitem{background:#ffffffb5;border:1px solid #dce6f2}
+.muted{color:#64748b}
+.window{border-radius:13px;box-shadow:0 28px 90px #1d355440}
+.titlebar{background:#f7faffdf;border-bottom:1px solid #dbe5f1;color:#1c3452}
+.content{background:#f5f8fc;color:#1e314b}
+.wincontrols button{color:#405570}.wincontrols button:hover{background:#e3ebf5}
+.wincontrols .close:hover{background:#e5484d;color:white}
+.browserbar input{background:white;color:#203652;border:1px solid #d5e0ed}
+.primary{background:#176bd1;color:white;box-shadow:0 2px 5px #176bd125}.primary:hover{background:#0e5dbd}
+.gamegrid button,.memorygrid button,.keys button{background:#e5edf7;color:#183452}
+.gamegrid button:hover,.memorygrid button:hover,.keys button:hover{background:#cfe2fa}
+#quickPanel{background:#f8fbffed;color:#1d3552}#quickPanel .quicktiles button{background:#e6eef8;color:#1e3552}
+.widget{background:#ffffffb8;border:1px solid #ffffffd9;color:#193655;box-shadow:0 10px 30px #29466a20}.widget small{color:#536b88}.light #wallpaper{filter:brightness(.82) saturate(.8)}.light .panel{filter:brightness(1.04)}
+.loginbox{background:#ffffffdf;color:#1c3553}.loginbox input{background:#fff;color:#203652;border:1px solid #d4e0ee}
+.loginbox input::placeholder{color:#7c8da3}.toast{background:#f8fbffed;color:#1c3553}
+.bot-toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.bot-toolbar select{padding:8px 10px;border-radius:9px;border:1px solid #cbd8e8;background:white;color:#203652}
+.bot-board{display:grid;gap:7px;max-width:420px;margin:12px auto}
+.bot-board button{border:1px solid #d6e2f0;border-radius:10px;background:linear-gradient(#fff,#eaf1fa);color:#183452;font-size:26px;min-height:48px}
+.bot-board button:disabled{opacity:.85}
+.game-status{padding:10px 12px;border-radius:10px;background:#e6f0fc;color:#21466f}
+.game-choice{padding:10px 14px;border-radius:10px;background:#e4edf8;color:#1d3b5d;margin:4px}
+@media(max-width:650px){.taskbar{height:60px}.brandmark{color:#17365f}}
+
+</style>
+</head>
+<body>
+<div id="wallpaper"></div>
+<div class="brandmark">✦ <em>WINDOWS</em> 12</div>
+<div class="widget"><div class="bigtime" id="widgetClock">--:--</div><small id="widgetDate">Добро пожаловать</small><div style="margin-top:10px;font-size:12px;color:inherit">✨ Хорошего дня!</div></div>
+<div class="desktop" id="desktop">
+ <button class="icon" data-app="explorer"><span class="glyph">📁</span><span>Проводник</span></button>
+ <button class="icon" data-app="browser"><span class="glyph">🌐</span><span>Браузер</span></button>
+ <button class="icon" data-app="notes"><span class="glyph">📝</span><span>Заметки</span></button>
+ <button class="icon" data-app="calculator"><span class="glyph">🧮</span><span>Калькулятор</span></button>
+ <button class="icon" data-app="settings"><span class="glyph">⚙️</span><span>Параметры</span></button>
+
+ <button class="icon" data-app="store"><span class="glyph">🛍️</span><span>Магазин</span></button>
+ <button class="icon" data-app="calendar"><span class="glyph">📅</span><span>Календарь</span></button>
+ <button class="icon" data-app="mail"><span class="glyph">✉️</span><span>Почта</span></button>
+ <button class="icon" data-app="photos"><span class="glyph">🖼️</span><span>Фотографии</span></button>
+ <button class="icon" data-app="downloads"><span class="glyph">⬇️</span><span>Загрузки</span></button>
+ <button class="icon" data-app="taskmgr"><span class="glyph">📊</span><span>Диспетчер задач</span></button>
+ <button class="icon" data-app="paint"><span class="glyph">🎨</span><span>Рисование</span></button>
+ <button class="icon" data-app="timer"><span class="glyph">⏱️</span><span>Таймер</span></button>
+ <button class="icon" data-app="games"><span class="glyph">🎮</span><span>Игры</span></button>
+ <button class="icon" data-app="recycle"><span class="glyph">🗑️</span><span>Корзина</span></button>
+ <button class="icon" data-app="about"><span class="glyph">🪟</span><span>О системе</span></button>
+</div>
+<div class="startmenu panel" id="startmenu">
+ <input class="search" id="appsearch" placeholder="🔎  Поиск приложений, настроек и документов">
+ <div class="sectionhead"><span>Закреплённые</span><span class="muted">Все приложения　›</span></div>
+ <div class="apps">
+  <button class="app" data-app="browser"><b>🌐</b><small>Браузер</small></button><button class="app" data-app="explorer"><b>📁</b><small>Проводник</small></button><button class="app" data-app="notes"><b>📝</b><small>Заметки</small></button><button class="app" data-app="calculator"><b>🧮</b><small>Калькулятор</small></button><button class="app" data-app="settings"><b>⚙️</b><small>Параметры</small></button><button class="app" data-app="about"><b>🪟</b><small>О системе</small></button>
+ </div>
+ <div class="sectionhead"><span>Рекомендуем</span><span class="muted">Недавно открытые</span></div>
+ <div class="recommended"><span style="font-size:25px">📄</span><div><b>Добро пожаловать</b><div class="muted">Начните работу с Windows 12 Web</div></div></div>
+ <div class="userrow"><span class="profilebadge"><i class="avatar" id="menuAvatar">П</i><span id="menuUser">Пользователь</span></span><button class="taskbtn" title="Выйти из профиля" onclick="logoutUser()">⇥</button></div>
+</div>
+<div class="taskbar">
+ <div class="task-center">
+  <button class="taskbtn start" id="startBtn" title="Пуск">⊞</button>
+  <button class="taskbtn" data-app="browser" title="Браузер">🌐</button><button class="taskbtn" data-app="explorer" title="Проводник">📁</button><button class="taskbtn" data-app="notes" title="Заметки">📝</button><button class="taskbtn" data-app="calculator" title="Калькулятор">🧮</button>
+ </div>
+ <div class="tray"><button class="taskbtn" id="quickBtn" title="Быстрые настройки" style="width:34px;height:34px;font-size:16px">⌃</button><span class="status">◉　🔊　🔋</span><span><span id="clock">19:52</span><br><span class="date" id="date">24.11.2026</span></span></div>
+</div>
+<div class="panel" id="quickPanel"><b>Быстрые настройки</b><div class="quicktiles">
+<button onclick="cycleWallpaper()">🎨　Обои</button><button onclick="document.body.classList.toggle('light');notify('Тема переключена')">🌙　Тема</button>
+<button onclick="notify('Режим не беспокоить включён')">🔕　Не беспокоить</button><button onclick="notify('Подключение: локальный режим')">📶　Сеть</button>
+</div><p class="muted" style="font-size:11px;margin:12px 2px 0">Windows 12 Nova · Быстрые действия</p></div>
+<div class="toast panel" id="toast"></div>
+
+<!-- Windows -->
+<div class="window panel" id="explorer" style="left:18%;top:13%;width:680px;height:470px">
+ <div class="titlebar"><strong>📁　Проводник</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="explorer"><div class="sidebar"><div>🏠 Главная</div><div>🖥️ Рабочий стол</div><div>📥 Загрузки</div><div>📄 Документы</div><div>🖼️ Изображения</div><div>🎵 Музыка</div></div><div><div class="browserbar"><input value="Главная" aria-label="Путь"><button class="primary" onclick="notify('Это демонстрационная файловая система.')">＋ Создать</button></div><div class="files"><div class="file"><span>📁</span>Документы</div><div class="file"><span>📁</span>Изображения</div><div class="file"><span>📁</span>Загрузки</div><div class="file"><span>📁</span>Музыка</div><div class="file"><span>🖼️</span>Обои.jpg</div><div class="file"><span>📄</span>Привет.txt</div></div></div></div></div>
+</div>
+<div class="window panel" id="browser" style="left:22%;top:10%;width:700px;height:490px">
+ <div class="titlebar"><strong>🌐　Браузер</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="browserbar"><input id="url" value="https://www.wikipedia.org" placeholder="Введите адрес или поисковый запрос"><button class="primary" id="go">Перейти</button></div><div class="card" style="height:calc(100% - 52px);display:grid;place-items:center;text-align:center"><div><div style="font-size:50px">🌍</div><h2>Ваше окно в интернет</h2><p class="muted">Введите адрес сайта или поисковый запрос в строке выше.</p><button class="primary" onclick="document.getElementById('url').value='https://www.wikipedia.org';document.getElementById('go').click()">Открыть Википедию</button><p class="muted" style="font-size:11px;margin-top:20px">Для реального просмотра требуется подключение к интернету. Некоторые сайты запрещают встраивание.</p></div></div></div>
+</div>
+<div class="window panel" id="notes" style="left:30%;top:17%;width:480px;height:400px">
+ <div class="titlebar"><strong>📝　Заметки</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><p class="muted">Ваши заметки сохраняются автоматически в этом браузере.</p><textarea class="note" id="note" placeholder="Начните писать..."></textarea></div>
+</div>
+<div class="window panel" id="calculator" style="left:37%;top:15%;width:360px;height:480px">
+ <div class="titlebar"><strong>🧮　Калькулятор</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="calc"><input class="calcdisplay" id="display" value="0" readonly><div class="keys">
+ <button data-k="C">C</button><button data-k="(">(</button><button data-k=")">)</button><button class="op" data-k="÷">÷</button>
+ <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="×">×</button>
+ <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="−">−</button>
+ <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="+">+</button>
+ <button data-k="0">0</button><button data-k=".">.</button><button data-k="⌫">⌫</button><button class="op" data-k="=">=</button>
+ </div></div></div>
+</div>
+<div class="window panel" id="settings" style="left:25%;top:17%;width:600px;height:430px">
+ <div class="titlebar"><strong>⚙️　Параметры</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Параметры</h2><p class="muted">Настройте внешний вид и работу веб-рабочего стола.</p><div class="settingsgrid"><div class="setting">🎨 <b>Персонализация</b><p class="muted">Обои и цвета интерфейса</p><button class="primary" onclick="cycleWallpaper()">Сменить обои</button></div><div class="setting">🌙 <b>Режим оформления</b><p class="muted">Стеклянная тёмная тема</p><button class="primary" onclick="document.body.classList.toggle('light')">Переключить тему</button></div><div class="setting">🔔 <b>Уведомления</b><p class="muted">Системные сообщения</p><button class="primary" onclick="notify('Уведомления включены.')">Проверить</button></div><div class="setting">💻 <b>Система</b><p class="muted">Windows 12 Nova Edition</p><span class="muted">Версия 12.0.1</span></div></div></div>
+</div>
+<div class="window panel" id="about" style="left:30%;top:20%;width:450px;height:330px">
+ <div class="titlebar"><strong>🪟　О системе</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content" style="text-align:center"><div style="font-size:62px;color:#9bd2ff">⊞</div><h2>Windows 12 Web</h2><p class="muted">Современный веб-рабочий стол в стиле Windows.</p><p>Версия 12.0.1 · HTML Edition</p><p class="muted" style="font-size:12px">Это интерактивная браузерная имитация, а не настоящая операционная система Windows.</p></div>
+</div>
+
+<div class="window panel" id="store" style="left:16%;top:9%;width:760px;height:540px">
+ <div class="titlebar"><strong>🛍️　Магазин приложений</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Магазин Windows</h2><p class="muted">Полезные приложения для вашего рабочего стола. Нажмите «Установить», чтобы добавить приложение в меню.</p><div class="storegrid" id="storeGrid"></div></div>
+</div>
+<div class="window panel" id="downloads" style="left:23%;top:12%;width:650px;height:470px">
+ <div class="titlebar"><strong>⬇️　Загрузки и файлы</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Загрузки</h2><div class="downloadzone"><div style="font-size:40px">📥</div><b>Добавьте файлы в свою систему</b><p class="muted">Выберите файлы на устройстве. Они появятся в списке загрузок этой веб-системы.</p><input type="file" id="filePicker" multiple style="max-width:100%"></div><div class="downloadlist" id="downloadList"><p class="muted">Пока нет загруженных файлов.</p></div></div>
+</div>
+<div class="window panel" id="calendar" style="left:28%;top:16%;width:460px;height:390px">
+ <div class="titlebar"><strong>📅　Календарь</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2 id="calendarToday"></h2><p class="muted">Ваш календарь и быстрые заметки о планах.</p><div class="card"><label>Новое событие</label><input id="eventText" class="search" style="margin:8px 0" placeholder="Например, встреча в 15:00"><button class="primary" onclick="addEvent()">Добавить</button></div><div id="eventList" class="downloadlist"></div></div>
+</div>
+<div class="window panel" id="mail" style="left:20%;top:13%;width:600px;height:440px">
+ <div class="titlebar"><strong>✉️　Почта</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Почта</h2><p class="muted">Демонстрационный почтовый блокнот — он не отправляет письма.</p><input id="mailTo" class="search" placeholder="Кому"><input id="mailSubject" class="search" style="margin-top:8px" placeholder="Тема"><textarea id="mailBody" class="note" style="margin-top:8px;height:170px" placeholder="Текст письма"></textarea><button class="primary" style="margin-top:10px" onclick="saveMailDraft()">Сохранить черновик</button><span id="draftStatus" class="muted"></span></div>
+</div>
+<div class="window panel" id="photos" style="left:24%;top:14%;width:620px;height:450px">
+ <div class="titlebar"><strong>🖼️　Фотографии</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Фотографии</h2><p class="muted">Выберите изображения на устройстве для просмотра.</p><input type="file" id="photoPicker" accept="image/*" multiple><div id="photoGallery" class="storegrid" style="margin-top:15px"></div></div>
+</div>
+<div class="window panel" id="taskmgr" style="left:32%;top:18%;width:440px;height:360px">
+ <div class="titlebar"><strong>📊　Диспетчер задач</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Работающие приложения</h2><p class="muted">Окна, открытые в этой веб-системе.</p><div id="taskList" class="downloadlist"></div><button class="primary" onclick="refreshTasks()">Обновить список</button></div>
+</div>
+
+<div class="window panel" id="games" style="left:12%;top:7%;width:820px;height:600px">
+  <div class="titlebar"><strong>🎮　Игровой центр</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+  <div class="content"><h2>Игровой центр</h2><p class="muted">Играй против компьютера. Выбирай сложность соперника.</p>
+  <div class="storegrid">
+   <div class="storeitem"><div class="appico">⭕</div><b>Крестики-нолики</b><p>Умный бот блокирует ходы и ищет победу.</p><button class="primary" onclick="showGame('tic')">Играть против бота</button></div>
+   <div class="storeitem"><div class="appico">🔴</div><b>Четыре в ряд</b><p>Собери четыре фишки раньше компьютера.</p><button class="primary" onclick="showGame('connect')">Играть против бота</button></div>
+   <div class="storeitem"><div class="appico">✊</div><b>Камень, ножницы, бумага</b><p>Серия раундов против компьютера.</p><button class="primary" onclick="showGame('rps')">Играть против бота</button></div>
+   <div class="storeitem"><div class="appico">🧠</div><b>Найди пару</b><p>Проверь память и найди все совпадения.</p><button class="primary" onclick="showGame('memory')">Играть</button></div>
+   <div class="storeitem"><div class="appico">🐍</div><b>Змейка</b><p>Собирай яблоки и побей свой рекорд.</p><button class="primary" onclick="showGame('snake')">Играть</button></div>
+   <div class="storeitem"><div class="appico">🔢</div><b>Угадай число</b><p>Компьютер загадал число от 1 до 100.</p><button class="primary" onclick="showGame('guess')">Играть против бота</button></div>
+  </div><div id="gameArea" class="card" style="margin-top:14px;min-height:190px"><p class="muted">Выбери игру выше.</p></div></div>
+ </div>
+<div class="window panel" id="paint" style="left:18%;top:12%;width:690px;height:500px">
+ <div class="titlebar"><strong>🎨　Рисование</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><h2>Свободное рисование</h2><div class="painttools"><label>Цвет <input type="color" id="paintColor" value="#245bd6"></label><label>Размер <input type="range" id="paintSize" min="1" max="30" value="5"></label><button class="primary" onclick="clearPaint()">Очистить</button><button class="primary" onclick="downloadPaint()">Скачать рисунок</button></div><canvas id="paintCanvas" width="900" height="420"></canvas></div>
+</div>
+<div class="window panel" id="timer" style="left:34%;top:16%;width:390px;height:390px">
+ <div class="titlebar"><strong>⏱️　Таймер и секундомер</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div class="timerface" id="timerFace">05:00</div><div style="display:flex;gap:8px;justify-content:center"><input id="timerMinutes" type="number" min="1" max="180" value="5" style="width:90px;padding:9px;border-radius:9px;border:0"><button class="primary" onclick="startTimer()">Старт</button><button class="primary" onclick="pauseTimer()">Пауза</button><button class="primary" onclick="resetTimer()">Сброс</button></div><p class="muted" style="text-align:center">Простой таймер для работы и отдыха.</p></div>
+</div>
+<div class="window panel" id="recycle" style="left:26%;top:17%;width:480px;height:360px">
+ <div class="titlebar"><strong>🗑️　Корзина</strong><div class="wincontrols"><button class="min">—</button><button class="max">□</button><button class="close">✕</button></div></div>
+ <div class="content"><div style="font-size:45px;text-align:center;margin:20px">🗑️</div><h3 style="text-align:center">Корзина пуста</h3><p class="muted" style="text-align:center">В этой демонстрационной версии удалённые файлы не перемещаются в корзину.</p></div>
+</div>
+
+<div id="loginScreen" class="show"><div class="loginbox panel"><div class="loginlogo">⊞</div><h2>Добро пожаловать</h2><p class="muted">Войдите в Windows 12 Web</p><input id="loginName" maxlength="24" placeholder="Имя пользователя" autocomplete="username"><input id="loginPassword" type="password" placeholder="Пароль (необязательно)" autocomplete="current-password"><div id="loginError"></div><button class="primary" onclick="loginUser()">Войти</button><p class="muted" style="font-size:11px;margin-top:15px">Локальный профиль для этого браузера. Это не защищённая онлайн-учётная запись.</p></div></div>
+
+<script>
+const menu=document.getElementById('startmenu'),start=document.getElementById('startBtn');
+let z=30;
+function openApp(id){const w=document.getElementById(id);if(!w)return;w.classList.add('open');w.style.zIndex=++z;menu.classList.remove('show');document.querySelectorAll('.taskbtn[data-app]').forEach(b=>b.classList.toggle('active',b.dataset.app===id));}
+document.querySelectorAll('[data-app]').forEach(b=>b.addEventListener('click',()=>openApp(b.dataset.app)));
+start.addEventListener('click',()=>menu.classList.toggle('show'));
+document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!start.contains(e.target)&&!e.target.closest('[data-app]'))menu.classList.remove('show')});
+document.querySelectorAll('.window').forEach(w=>{
+ const bar=w.querySelector('.titlebar');let drag=false,dx=0,dy=0;
+ bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop;w.style.zIndex=++z;bar.setPointerCapture(e.pointerId)});
+ bar.addEventListener('pointermove',e=>{if(!drag)return;w.style.left=Math.max(0,Math.min(innerWidth-w.offsetWidth,e.clientX-dx))+'px';w.style.top=Math.max(0,Math.min(innerHeight-90,e.clientY-dy))+'px'});
+ bar.addEventListener('pointerup',()=>drag=false);
+ w.querySelector('.close').onclick=()=>w.classList.remove('open');
+ w.querySelector('.min').onclick=()=>w.classList.remove('open');
+ w.querySelector('.max').onclick=()=>{if(w.dataset.max==='1'){w.style.left=w.dataset.left;w.style.top=w.dataset.top;w.style.width=w.dataset.width;w.style.height=w.dataset.height;w.dataset.max='0'}else{Object.assign(w.dataset,{left:w.style.left,top:w.style.top,width:w.style.width,height:w.style.height,max:'1'});w.style.left='8px';w.style.top='8px';w.style.width='calc(100vw - 16px)';w.style.height='calc(100vh - 88px)'}};
+ w.addEventListener('pointerdown',()=>w.style.zIndex=++z);
+});
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('date').textContent=d.toLocaleDateString('ru-RU')}tick();setInterval(tick,1000);
+function notify(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)}
+document.getElementById('note').value=localStorage.getItem('w12-note')||'';document.getElementById('note').addEventListener('input',e=>localStorage.setItem('w12-note',e.target.value));
+document.getElementById('go').onclick=()=>{let v=document.getElementById('url').value.trim();if(!v)return;if(!/^https?:\/\//i.test(v)){v='https://www.google.com/search?q='+encodeURIComponent(v)}window.open(v,'_blank','noopener')};
+let expr='';const disp=document.getElementById('display');document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{let k=b.dataset.k;if(k==='C')expr='';else if(k==='⌫')expr=expr.slice(0,-1);else if(k==='='){try{let safe=expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');if(!/^[0-9+*/(). -]+$/.test(safe))throw 0;let val=Function('"use strict";return ('+safe+')')();expr=Number.isFinite(val)?String(val):'Ошибка'}catch{expr='Ошибка'}}else if(expr==='Ошибка')expr=k;else expr+=k;disp.value=expr||'0'});
+let wallpaper=0;function cycleWallpaper(){const bgs=['radial-gradient(ellipse at 70% 43%,#5ca8e8 0,#23528b 23%,transparent 48%),linear-gradient(135deg,#101c39,#142c52 48%,#071629)','radial-gradient(ellipse at 30% 40%,#f59e0b 0,#9333ea 35%,transparent 60%),linear-gradient(135deg,#17133a,#3b1d52)','radial-gradient(ellipse at 70% 35%,#34d399 0,#0e7490 32%,transparent 58%),linear-gradient(135deg,#071c2b,#103b46)'];document.getElementById('wallpaper').style.background=bgs[++wallpaper%3];notify('Обои изменены')};
+document.getElementById('appsearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.apps .app').forEach(a=>a.style.display=a.innerText.toLowerCase().includes(q)?'block':'none')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')menu.classList.remove('show');if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='e'){e.preventDefault();openApp('explorer')}});
+
+// Локальный профиль: имя хранится только в этом браузере.
+function updateProfile(){const name=localStorage.getItem('w12-user')||'Пользователь';document.getElementById('menuUser').textContent=name;document.getElementById('menuAvatar').textContent=name.trim().charAt(0).toUpperCase()||'П'}
+function loginUser(){const name=document.getElementById('loginName').value.trim();if(!name){document.getElementById('loginError').textContent='Введите имя пользователя.';return}localStorage.setItem('w12-user',name);document.getElementById('loginScreen').classList.remove('show');updateProfile();notify('Добро пожаловать, '+name+'!')}
+function logoutUser(){localStorage.removeItem('w12-user');document.getElementById('startmenu').classList.remove('show');document.getElementById('loginName').value='';document.getElementById('loginPassword').value='';document.getElementById('loginScreen').classList.add('show')}
+document.getElementById('loginName').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser()});
+if(localStorage.getItem('w12-user')){document.getElementById('loginScreen').classList.remove('show');updateProfile()}
+const storeApps=[
+ {id:'calendar',icon:'📅',name:'Календарь',desc:'Планируйте события и важные дела.'},
+ {id:'mail',icon:'✉️',name:'Почта',desc:'Создавайте и сохраняйте черновики писем.'},
+ {id:'photos',icon:'🖼️',name:'Фотографии',desc:'Просматривайте изображения с устройства.'},
+ {id:'downloads',icon:'⬇️',name:'Загрузки',desc:'Добавляйте файлы в список загрузок.'},
+ {id:'taskmgr',icon:'📊',name:'Диспетчер задач',desc:'Смотрите открытые приложения.'},
+ {id:'notes',icon:'📝',name:'Заметки',desc:'Записывайте идеи — сохранение автоматически.'},
+ {id:'calculator',icon:'🧮',name:'Калькулятор',desc:'Выполняйте повседневные вычисления.'},
+ {id:'games',icon:'🎮',name:'Игровой центр',desc:'Шесть мини-игр, включая соперников-ботов.'},
+ {id:'paint',icon:'🎨',name:'Рисование',desc:'Создавайте рисунки и скачивайте их.'},
+ {id:'timer',icon:'⏱️',name:'Таймер',desc:'Удобный таймер для фокусировки.'},
+ {id:'recycle',icon:'🗑️',name:'Корзина',desc:'Раздел для удалённых файлов.'}
+];
+let installedApps=JSON.parse(localStorage.getItem('w12-installed')||'["calendar","mail","photos","downloads","taskmgr","notes","calculator"]');
+function renderStore(){document.getElementById('storeGrid').innerHTML=storeApps.map(a=>`<div class="storeitem"><div class="appico">${a.icon}</div><b>${a.name}</b><p>${a.desc}</p><button class="primary" onclick="toggleInstall('${a.id}')">${installedApps.includes(a.id)?'Удалить':'Установить'}</button></div>`).join('')}
+function toggleInstall(id){installedApps=installedApps.includes(id)?installedApps.filter(x=>x!==id):[...installedApps,id];localStorage.setItem('w12-installed',JSON.stringify(installedApps));renderStore();notify(installedApps.includes(id)?'Приложение установлено':'Приложение удалено')}
+renderStore();
+const uploadedFiles=[];
+document.getElementById('filePicker').addEventListener('change',e=>{for(const f of e.target.files)uploadedFiles.push(f);renderDownloads();e.target.value=''});
+function renderDownloads(){const box=document.getElementById('downloadList');if(!uploadedFiles.length){box.innerHTML='<p class="muted">Пока нет загруженных файлов.</p>';return}box.innerHTML=uploadedFiles.map((f,i)=>`<div class="downloadrow"><span>📄</span><span class="fname">${f.name}</span><small class="muted">${(f.size/1024).toFixed(1)} КБ</small><button class="primary" onclick="saveLocalFile(${i})">Скачать</button></div>`).join('')}
+function saveLocalFile(i){const f=uploadedFiles[i],a=document.createElement('a'),u=URL.createObjectURL(f);a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+document.getElementById('photoPicker').addEventListener('change',e=>{const g=document.getElementById('photoGallery');g.innerHTML='';[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f),d=document.createElement('div');d.className='storeitem';d.innerHTML=`<img src="${u}" style="width:100%;height:120px;object-fit:contain"><small>${f.name.replace(/[<>&"]/g,'')}</small>`;g.appendChild(d)})});
+document.getElementById('calendarToday').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function addEvent(){const input=document.getElementById('eventText'),v=input.value.trim();if(!v)return;const arr=JSON.parse(localStorage.getItem('w12-events')||'[]');arr.push(v);localStorage.setItem('w12-events',JSON.stringify(arr));input.value='';renderEvents()}
+function renderEvents(){const arr=JSON.parse(localStorage.getItem('w12-events')||'[]');document.getElementById('eventList').innerHTML=arr.length?arr.map((v,i)=>`<div class="downloadrow">📌 <span class="fname">${v.replace(/[<>&"]/g,'')}</span><button onclick="removeEvent(${i})">✕</button></div>`).join(''):'<p class="muted">Событий пока нет.</p>'}
+function removeEvent(i){const a=JSON.parse(localStorage.getItem('w12-events')||'[]');a.splice(i,1);localStorage.setItem('w12-events',JSON.stringify(a));renderEvents()}renderEvents();
+function saveMailDraft(){localStorage.setItem('w12-mail-draft',JSON.stringify({to:document.getElementById('mailTo').value,subject:document.getElementById('mailSubject').value,body:document.getElementById('mailBody').value}));document.getElementById('draftStatus').textContent=' Черновик сохранён'}
+try{const d=JSON.parse(localStorage.getItem('w12-mail-draft')||'{}');document.getElementById('mailTo').value=d.to||'';document.getElementById('mailSubject').value=d.subject||'';document.getElementById('mailBody').value=d.body||''}catch{}
+function refreshTasks(){const names={store:'Магазин',calendar:'Календарь',mail:'Почта',photos:'Фотографии',downloads:'Загрузки',taskmgr:'Диспетчер задач',explorer:'Проводник',browser:'Браузер',notes:'Заметки',calculator:'Калькулятор',settings:'Параметры',about:'О системе',paint:'Рисование',timer:'Таймер',games:'Игровой центр',recycle:'Корзина'};const opened=[...document.querySelectorAll('.window.open')];document.getElementById('taskList').innerHTML=opened.length?opened.map(w=>`<div class="downloadrow">🟢 <span class="fname">${names[w.id]||w.id}</span><button class="primary" onclick="document.getElementById('${w.id}').classList.remove('open');refreshTasks()">Завершить</button></div>`).join(''):'<p class="muted">Нет открытых приложений.</p>'}
+
+
+// Quick settings panel
+document.getElementById('quickBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('quickPanel').classList.toggle('show')});
+document.addEventListener('click',e=>{if(!e.target.closest('#quickPanel')&&!e.target.closest('#quickBtn'))document.getElementById('quickPanel').classList.remove('show')});
+function updateWidgetClock(){const d=new Date();document.getElementById('widgetClock').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});document.getElementById('widgetDate').textContent=d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
+updateWidgetClock();setInterval(updateWidgetClock,1000);
+
+// Paint app
+const paintCanvas=document.getElementById('paintCanvas'),paintCtx=paintCanvas.getContext('2d');
+paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height);
+let painting=false;
+function paintPoint(e){const r=paintCanvas.getBoundingClientRect();return {x:(e.clientX-r.left)*paintCanvas.width/r.width,y:(e.clientY-r.top)*paintCanvas.height/r.height}}
+paintCanvas.addEventListener('pointerdown',e=>{painting=true;paintCanvas.setPointerCapture(e.pointerId);const p=paintPoint(e);paintCtx.beginPath();paintCtx.moveTo(p.x,p.y)});
+paintCanvas.addEventListener('pointermove',e=>{if(!painting)return;const p=paintPoint(e);paintCtx.lineWidth=Number(document.getElementById('paintSize').value);paintCtx.lineCap='round';paintCtx.strokeStyle=document.getElementById('paintColor').value;paintCtx.lineTo(p.x,p.y);paintCtx.stroke()});
+paintCanvas.addEventListener('pointerup',()=>painting=false);paintCanvas.addEventListener('pointercancel',()=>painting=false);
+function clearPaint(){paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,paintCanvas.width,paintCanvas.height)}
+function downloadPaint(){const a=document.createElement('a');a.download='my-drawing.png';a.href=paintCanvas.toDataURL('image/png');a.click()}
+
+// Timer
+let timerSeconds=300,timerInterval=null;
+function paintTimer(){document.getElementById('timerFace').textContent=String(Math.floor(timerSeconds/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0')}
+function startTimer(){if(timerInterval)return;if(timerSeconds<=0)timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;timerInterval=setInterval(()=>{timerSeconds--;paintTimer();if(timerSeconds<=0){pauseTimer();notify('⏰ Время вышло!')}},1000)}
+function pauseTimer(){clearInterval(timerInterval);timerInterval=null}
+function resetTimer(){pauseTimer();timerSeconds=Math.max(1,Number(document.getElementById('timerMinutes').value)||5)*60;paintTimer()}
+paintTimer();
+
+// Игры: исправлены сохранение сложности, устаревшие таймеры и блокировка ходов.
+let ticTurn='❌',ticCells=Array(9).fill(''),memoryDeck=[],memoryOpen=[],memoryLock=false,snakeTimer=null,snakeState=null;
+let rpsScore={you:0,bot:0},connectCells=Array(42).fill(0),connectTurn=1,guessSecret=0,guessTries=0;
+let botLevel='normal',ticGameId=0,connectGameId=0,memoryGameId=0;
+function botControls(){return `<div class="bot-toolbar"><label>Сложность бота <select id="botLevel"><option value="easy" ${botLevel==='easy'?'selected':''}>Лёгкая</option><option value="normal" ${botLevel==='normal'?'selected':''}>Обычная</option><option value="hard" ${botLevel==='hard'?'selected':''}>Сложная</option></select></label><span class="badge">Соперник: компьютер</span></div>`}
+function bindBotLevel(){const el=document.getElementById('botLevel');if(el)el.addEventListener('change',()=>{botLevel=el.value})}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function showGame(which){
+ if(which==='tic'){ticGameId++;ticCells=Array(9).fill('');ticTurn='❌';renderTic();return}
+ if(which==='connect'){connectGameId++;connectCells=Array(42).fill(0);connectTurn=1;renderConnect();return}
+ if(which==='rps'){rpsScore={you:0,bot:0};renderRps();return}
+ if(which==='guess'){guessSecret=1+Math.floor(Math.random()*100);guessTries=0;renderGuess();return}
+ if(which==='memory'){memoryGameId++;memoryDeck=shuffle(['🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐','🍎','🚀','🐱','🎲','🌈','⚽','🍕','⭐']);memoryOpen=[];memoryLock=false;renderMemory();return}
+ if(which==='snake'){startSnake();return}
+}
+function ticWinner(c){for(const l of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]])if(c[l[0]]&&c[l[0]]===c[l[1]]&&c[l[1]]===c[l[2]])return c[l[0]];return c.every(Boolean)?'draw':null}
+function renderTic(status){document.getElementById('gameArea').innerHTML=`<b>⭕ Крестики-нолики</b>${botControls()}<p class="game-status">${status|| (ticTurn==='❌'?'Ваш ход — ❌':'Бот думает…')}</p><div class="bot-board" style="grid-template-columns:repeat(3,1fr);max-width:300px">${ticCells.map((v,i)=>`<button ${v||ticTurn==='⭕'||ticWinner(ticCells)?'disabled':''} onclick="ticMove(${i})">${v||'　'}</button>`).join('')}</div><button class="primary" onclick="showGame('tic')">Новая партия</button>`;bindBotLevel()}
+function ticMove(i){if(ticCells[i]||ticTurn!=='❌'||ticWinner(ticCells))return;ticCells[i]='❌';let w=ticWinner(ticCells);if(w){renderTic(w==='draw'?'Ничья!':'Вы победили!');return}ticTurn='⭕';const id=ticGameId;renderTic('Бот думает…');setTimeout(()=>{if(id===ticGameId&&ticTurn==='⭕')ticBot(id)},250)}
+function ticBot(id=ticGameId){
+ if(id!==ticGameId||ticTurn!=='⭕')return;
+ let empty=ticCells.map((v,i)=>v?null:i).filter(v=>v!==null);if(!empty.length)return;
+ let choice,level=botLevel;
+ if(level==='easy')choice=empty[Math.floor(Math.random()*empty.length)];
+ else{
+  function score(b,t,d){let w=ticWinner(b);if(w==='⭕')return 10-d;if(w==='❌')return d-10;if(w==='draw')return 0;let vals=[];for(let j=0;j<9;j++)if(!b[j]){b[j]=t;vals.push(score(b,t==='⭕'?'❌':'⭕',d+1));b[j]=''}return t==='⭕'?Math.max(...vals):Math.min(...vals)}
+  let best=-Infinity;for(let j of empty){ticCells[j]='⭕';let v=score(ticCells,'❌',0);ticCells[j]='';if(v>best){best=v;choice=j}}
+  if(level==='normal'&&Math.random()<.18)choice=empty[Math.floor(Math.random()*empty.length)];
+ }
+ ticCells[choice]='⭕';ticTurn='❌';let w=ticWinner(ticCells);if(w)ticTurn='';renderTic(w?(w==='draw'?'Ничья!':'Бот победил. Попробуй ещё раз!'):'Ваш ход — ❌')
+}
+function connectDrop(col,p){for(let r=5;r>=0;r--){let i=r*7+col;if(!connectCells[i]){connectCells[i]=p;return i}}return -1}
+function connectWin(p){for(let r=0;r<6;r++)for(let c=0;c<7;c++){let i=r*7+c;if(connectCells[i]!==p)continue;for(let [dr,dc] of [[0,1],[1,0],[1,1],[1,-1]]){let ok=true;for(let k=1;k<4;k++){let rr=r+dr*k,cc=c+dc*k;if(rr<0||rr>5||cc<0||cc>6||connectCells[rr*7+cc]!==p){ok=false;break}}if(ok)return true}}return false}
+function renderConnect(status){document.getElementById('gameArea').innerHTML=`<b>🔴 Четыре в ряд</b>${botControls()}<p class="game-status">${status|| (connectTurn===1?'Ваш ход — 🔴':'Бот думает…')}</p><div class="bot-board" style="grid-template-columns:repeat(7,1fr);max-width:490px">${Array.from({length:42},(_,i)=>`<button style="min-height:40px;font-size:21px" ${connectCells[i]||connectTurn!==1?'disabled':''} onclick="connectMove(${i%7})">${connectCells[i]===1?'🔴':connectCells[i]===2?'🟡':'·'}</button>`).join('')}</div><button class="primary" onclick="showGame('connect')">Новая партия</button>`;bindBotLevel()}
+function connectMove(c){if(connectTurn!==1||c<0||c>6||connectCells[c])return;let i=connectDrop(c,1);if(i<0)return;if(connectWin(1)){connectTurn=0;renderConnect('Вы выиграли! 🎉');return}if(connectCells.every(Boolean)){connectTurn=0;renderConnect('Ничья!');return}connectTurn=2;const id=connectGameId;renderConnect('Бот думает…');setTimeout(()=>{if(id===connectGameId&&connectTurn===2)connectBot(id)},300)}
+function connectBot(id=connectGameId){
+ if(id!==connectGameId||connectTurn!==2)return;
+ let legal=[0,1,2,3,4,5,6].filter(c=>!connectCells[c]);if(!legal.length){connectTurn=0;renderConnect('Ничья!');return}
+ function wins(c,p){let i=connectDrop(c,p);if(i<0)return false;let w=connectWin(p);connectCells[i]=0;return w}
+ let pick=legal.find(c=>wins(c,2));if(pick===undefined)pick=legal.find(c=>wins(c,1));
+ if(pick===undefined){if(botLevel==='easy')pick=legal[Math.floor(Math.random()*legal.length)];else{pick=[...legal].sort((a,b)=>Math.abs(3-a)-Math.abs(3-b))[0];if(botLevel==='normal'&&Math.random()<.25)pick=legal[Math.floor(Math.random()*legal.length)]}}
+ connectDrop(pick,2);let won=connectWin(2),draw=connectCells.every(Boolean);connectTurn=won||draw?0:1;renderConnect(won?'Бот собрал четыре!':draw?'Ничья!':'Ваш ход — 🔴')
+}
+function renderRps(result){document.getElementById('gameArea').innerHTML=`<b>✊ Камень, ножницы, бумага</b><p class="game-status">Счёт: вы ${rpsScore.you} : ${rpsScore.bot} бот</p><div style="text-align:center;padding:12px"><button class="game-choice" onclick="playRps('Камень')">✊ Камень</button><button class="game-choice" onclick="playRps('Ножницы')">✌️ Ножницы</button><button class="game-choice" onclick="playRps('Бумага')">✋ Бумага</button><p class="game-status">${result||'Выбери свой ход!'}</p><button class="primary" onclick="rpsScore={you:0,bot:0};renderRps()">Сбросить счёт</button></div>`}
+function playRps(v){let opts=['Камень','Ножницы','Бумага'],b=opts[Math.floor(Math.random()*3)],w=v===b?'ничья':(v==='Камень'&&b==='Ножницы'||v==='Ножницы'&&b==='Бумага'||v==='Бумага'&&b==='Камень')?'вы выиграли раунд':'бот выиграл раунд';if(w.startsWith('вы'))rpsScore.you++;if(w.startsWith('бот'))rpsScore.bot++;renderRps(`Вы: ${v} · Бот: ${b} — ${w}`)}
+function renderGuess(){document.getElementById('gameArea').innerHTML=`<b>🔢 Угадай число</b><p class="game-status">Я загадал число от 1 до 100. Попробуй найти его!</p><input id="guessInput" type="number" min="1" max="100" step="1" placeholder="Твоё число" style="width:130px;padding:10px;border:1px solid #cbd8e8;border-radius:9px"><button class="primary" onclick="guessTry()">Проверить</button> <button class="game-choice" onclick="showGame('guess')">Заново</button><p id="guessResult" class="game-status">Попыток: 0</p>`}
+function guessTry(){const input=document.getElementById('guessInput'),v=Number(input.value);if(!Number.isInteger(v)||v<1||v>100){document.getElementById('guessResult').textContent='Введи целое число от 1 до 100.';return}if(input.disabled)return;guessTries++;let msg=v===guessSecret?`Угадал за ${guessTries} попыток! 🎉`:v<guessSecret?'Моё число больше ↑':'Моё число меньше ↓';document.getElementById('guessResult').textContent=msg+' · Попыток: '+guessTries;if(v===guessSecret)input.disabled=true}
+function renderMemory(){document.getElementById('gameArea').innerHTML=`<b>🧠 Найди пару</b><p class="game-status">Найди все одинаковые карточки.</p><div class="memorygrid">${memoryDeck.map((v,i)=>`<button class="${v===''?'revealed':''}" ${v===''?'disabled':''} onclick="flipMemory(${i})">${v===''?'✓':memoryOpen.includes(i)?v:'❔'}</button>`).join('')}</div><button class="primary" onclick="showGame('memory')">Перемешать</button>`}
+function flipMemory(i){if(memoryLock||!memoryDeck[i]||memoryOpen.includes(i)||i<0||i>=memoryDeck.length)return;memoryOpen.push(i);renderMemory();if(memoryOpen.length%2===0){let [a,b]=memoryOpen.slice(-2);if(memoryDeck[a]===memoryDeck[b]){memoryDeck[a]='';memoryDeck[b]='';memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);renderMemory();if(memoryDeck.every(v=>v===''))document.querySelector('#gameArea .game-status').textContent='Победа! Все пары найдены.'}else{memoryLock=true;const id=memoryGameId;setTimeout(()=>{if(id!==memoryGameId)return;memoryOpen=memoryOpen.filter(n=>n!==a&&n!==b);memoryLock=false;renderMemory()},700)}}}
+function placeSnakeFood(){let free=[];for(let y=0;y<13;y++)for(let x=0;x<18;x++)if(!snakeState.body.some(p=>p.x===x&&p.y===y))free.push({x,y});snakeState.food=free.length?free[Math.floor(Math.random()*free.length)]:null}
+function startSnake(){clearInterval(snakeTimer);snakeState={body:[{x:7,y:7},{x:6,y:7},{x:5,y:7}],dir:{x:1,y:0},food:{x:12,y:7},score:0,over:false};document.getElementById('gameArea').innerHTML='<b>🐍 Змейка</b><p class="muted">Управление — стрелки на клавиатуре.</p><p id="snakeScore" class="game-status">Очки: 0</p><canvas id="snakeCanvas" width="360" height="260" style="display:block;max-width:100%;background:#0d1728;border-radius:12px;margin:10px auto"></canvas><button class="primary" onclick="startSnake()">Заново</button>';drawSnake();snakeTimer=setInterval(stepSnake,140)}
+function drawSnake(){const c=document.getElementById('snakeCanvas');if(!c||!snakeState)return;const x=c.getContext('2d'),s=20;x.clearRect(0,0,c.width,c.height);x.fillStyle='#15263c';x.fillRect(0,0,c.width,c.height);if(snakeState.food){x.fillStyle='#fb7185';x.fillRect(snakeState.food.x*s,snakeState.food.y*s,s-2,s-2)}snakeState.body.forEach((p,i)=>{x.fillStyle=i?'#60a5fa':'#a7f3d0';x.fillRect(p.x*s,p.y*s,s-2,s-2)});let q=document.getElementById('snakeScore');if(q)q.textContent='Очки: '+snakeState.score+(snakeState.over?' · Игра окончена':'')}
+function stepSnake(){let st=snakeState;if(!st||st.over)return;let h={x:st.body[0].x+st.dir.x,y:st.body[0].y+st.dir.y},eats=st.food&&h.x===st.food.x&&h.y===st.food.y,bodyToCheck=eats?st.body:st.body.slice(0,-1);if(h.x<0||h.y<0||h.x>=18||h.y>=13||bodyToCheck.some(p=>p.x===h.x&&p.y===h.y)){st.over=true;clearInterval(snakeTimer);drawSnake();notify('Игра окончена! Очки: '+st.score);return}st.body.unshift(h);if(eats){st.score++;placeSnakeFood();if(!st.food){st.over=true;clearInterval(snakeTimer)}}else st.body.pop();drawSnake()}
+document.addEventListener('keydown',e=>{if(!snakeState||snakeState.over||!document.getElementById('games').classList.contains('open'))return;const map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};const d=map[e.key];if(d&&!(d.x===-snakeState.dir.x&&d.y===-snakeState.dir.y)){snakeState.dir=d;e.preventDefault()}});
+</script>
+</body></html>
